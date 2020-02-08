@@ -1,0 +1,223 @@
+from variables import total_score
+from variables import inetd_services
+from variables import root_permissions
+from variables import tmp_options
+from variables import unused_filesystems
+from variables import call
+score = 0
+
+# 1.1.1 unused filesystems
+enabled = [fs for fs in unused_filesystems if fs in call(
+    'modprobe -n -v ' + fs)]
+# enabled contains unused filesystems that are not disabled
+score += len(unused_filesystems) - len(enabled)
+del unused_filesystems
+
+# 1.1.1.8 is not scored
+
+# 1.1.2 -> 1.1.5 /tmp options
+execute = call("mount | grep -E '\s/tmp\s'")
+if execute:
+    score += 1
+    invalid_tmp = [option for option in tmp_options if option not in execute]
+    # invalid_tmp comtains invalid /tmp mount options
+    score += (len(tmp_options) - len(invalid_tmp))
+
+# 1.1.6 -> 1.1.12 /var ; /var/tmp options ; /var/log ; /var/log/audit
+if call("mount | grep -E '\s/var\s'"):
+    score += 1
+    execute = call("mount | grep -E '\s/var/tmp\s'")
+    if execute:
+        score += 1
+        invalid_var_tmp = [
+            option for option in tmp_options if option not in execute]
+        # invalid_var_tmp contains invalid /var/tmp options
+        score += (len(tmp_options) - len(invalid_var_tmp))
+    if call("mount | grep -E '\s/var/log\s'"):
+        score += 1
+        if call("mount | grep -E '\s/var/log/audit\s'"):
+            score += 1
+
+# 1.1.13, 1.1.14 /home with nodev
+execute = call("mount | grep /home")
+if execute:
+    score += 1
+    if 'nodev' in execute:
+        score += 1
+
+# 1.1.15 -> 1.1.17 /dev/shm mount options
+execute = call("mount | grep -E '\s/dev/shm\s'")
+dev_shm_not_enabled = [option for option in tmp_options if option in execute]
+# dev_shm_not_enabled contains mount options that are not enabled in /dev/shm
+score += (len(tmp_options) - len(dev_shm_not_enabled))
+del(tmp_options)
+
+# 1.1.18 -> 1.1.20 is not scored
+
+# 1.1.21 sticky world writable directories
+non_sticky_world_writable = call(
+    "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null").splitlines()
+# non_sticky_world_writable contains all directories with non sticky world writable directories
+if not non_sticky_world_writable:
+    score += 1
+
+# 1.1.22 automounting | chkconfig command not found in debian
+if not call("systemctl is-enabled autofs"):
+    execute = call('ls /etc/rc*.d | grep autofs').splitlines()
+    # automout will contain all filesystems that will mount automatically
+    automount = [s for s in execute if s.startswith('S')]
+    if not automount:
+        score += 1
+
+
+# 1.1.23 disabled USB
+if not call("modprobe -n -v usb-storage"):
+    score += 1
+
+# 1.2 is not scored
+
+# 1.3.1 AIDE installed is {version specific} [SCORED] ; doing for debian
+if 'install ok installed' in call('dpkg -s aide'):
+    score += 1
+    # 1.3.2 filesystem integrity using AIDE(1.3.1)
+    if 'no crontab for root' in call('sudo crontab -u root -l | grep aide'):
+        score += 1
+
+# 1.4.1 bootloader configuration {depends on bootloader} ; doing for GRUB
+execute = call('stat /boot/grub*/grub.cfg | grep Access')
+if any(p in execute for p in root_permissions):
+    score += 1
+del(root_permissions)
+
+# 1.4.2 bootloader password {depends on bootloader} ; doing for GRUB
+if call('grep "^\s*password" /boot/grub*/grub.cfg'):
+    score += 1
+
+# 1.4.3 root password
+if not call('sudo grep ^root:[*\!]: /etc/shadow'):
+    score += 1
+
+# 1.4.4 is not scored
+
+# 1.5.1 restrict core dumps
+if '0' in call('grep "hard core" /etc/security/limits.conf /etc/security/limits.d/*') and '0' in call('sysctl fs.suid_dumpable') and '0' in call('grep "fs\.suid_dumpable" /etc/sysctl.conf /etc/sysctl.d/*'):
+    execute = call('systemctl is-enabled coredump.service')
+    if not execute:
+        score += 1
+    else:
+        # check configurations of coredump.service
+        execute = call('cat /etc/systemd/coredump.conf')
+        if 'Storage=none' in execute and 'ProcessSizeMax=0' in execute:
+            score += 1
+
+# 1.5.2 Ensure ND/NX support {for systems with journalctl}
+if 'active' in call("journalctl | grep 'protection:"):
+    score += 1
+
+# 1.5.3 Active ASLR
+if '2' in call('sysctl kernel.randomize_va_space') and '2' in call('grep "kernel\.randomize_va_space" /etc/sysctl.conf /etc/sysctl.d/*'):
+    score += 1
+
+# 1.5.4 Disable prelink {distributon specific} | doing for debian
+if 'not installed' in call('dpkg -s prelink'):
+    score += 1
+
+# 1.6.1.1 SELinux or AppArmour {distribution specific} | doing for debian
+
+# 1.6.2 Configure SELinux
+if 'install ok installed' in call('dpkg -s libselinux1'):
+    score += 1
+    # 1.6.2.1 not disabled | {depends on bootloader} | changes for GRUB 2
+    execute = call('grep "^\s*kernel" /boot/grub/menu.lst')
+    if not execute:
+        execute = call('grep "^\s*linux" /boot/grub2/grub.cfg')
+    if 'selinux=0' not in execute and 'enforcing=0' not in execute:
+        score += 1
+    execute = call('cat /etc/selinux/config')
+    if execute:
+        # 1.6.2.2 enforcing
+        if 'SELINUX=enforcing' in execute:
+            score += 1
+        # 1.6.2.3 policy configured
+        if 'SELINUXTYPE=targeted' in execute:
+            score += 1
+    # 1.6.2.4 SETroubleshoot not installed
+    if 'not installed' in call('dpkg -s setroubleshoot'):
+        score += 1
+    # 1.6.2.5 mcstrans not installed
+    if 'not installed' in call('dpkg -s mcstrans'):
+        score += 1
+    # 1.6.2.6 unconfigured daemons
+    if not call("ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }'"):
+        score += 1
+
+# 1.6.3 Configure AppArmour
+if 'install ok installed' in call('dpkg -s apparmor'):
+    score += 1
+    # 1.6.3.1 not disabled | {depends on bootloader} | changes for GRUB 2
+    if 'apparmor=0' not in call('grep "^\s*kernel" /boot/grub/menu.lst') and 'apparmor=0' not in call('grep "^\s*linux" /boot/grub/menu.lst'):
+        score += 1
+    # 1.6.3.2 profiles are enforcing
+    execute = call('sudo apparmor_status')
+    if '0 profiles are loaded.' not in execute and '0 profiles are in enforce mode.' not in execute and '0 processes are in complain mode.' in execute and '0 processes are unconfined but have a profile defined.' in execute:
+        score += 1
+
+# 1.7.1.1 message of the day
+if not call("grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/motd"):
+    score += 1
+
+# 1.7.1.2 local login warning
+if not call("grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/issue"):
+    score += 1
+
+# 1.7.1.3 remote login banner
+if not call("grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/issue.net"):
+    score += 1
+
+# 1.7.1.4 /etc/motd permission configurations
+if '0644/-rw-r--r--' in call('stat /etc/motd | grep Access'):
+    score += 1
+
+# 1.7.1.5 /etc/issue permission configurations
+if '0644/-rw-r--r--' in call('stat /etc/issue | grep Access'):
+    score += 1
+
+# 1.7.1.5 /etc/issue.net permission configurations
+if '0644/-rw-r--r--' in call('stat /etc/issue.net | grep Access'):
+    score += 1
+
+# 1.7.2 GDM login banner | if message exists, comply with policy | DIFFERS FOR LOGIN SERVICES
+if not '# banner-message-enable=true' in call('cat /etc/gdm3/greeter.dconf-defaults | grep banner-message'):
+    score += 1
+
+# 1.8 is not scored
+
+# 2.1 inetd services
+if 'No such file or directory' in call('/etc/inetd.*'):
+    score += len(inetd_services) + 2
+else:
+    enabled_inetd = [s for s in inetd_services if (call('grep -R "^' + s + '" /etc/inetd.*') or any('disable = yes' in l for l in call(
+        'cat /etc/xinetd.conf | grep ' + s).splitlines()) or any('disable = yes' in l for l in call('cat /etc/xinetd.d/* | grep ' + s).splitlines()))]
+    score += len(inetd_services) - len(enabled_inetd)
+    # 2.1.6 rsh services
+    if not call('grep -R "^shell" /etc/inetd.*') and not call('grep -R "^login" /etc/inetd.*') and not call('grep -R "^exec" /etc/inetd.*'):
+        if all('disable = yes' in l for l in call('cat /etc/xinetd.conf | grep rsh').splitlines()) and all('disable = yes' in l for l in call('cat /etc/xinetd.d/* | grep rsh').splitlines()):
+            if all('disable = yes' in l for l in call('cat /etc/xinetd.conf | grep rlogin').splitlines()) and all('disable = yes' in l for l in call('cat /etc/xinetd.d/* | grep rlogin').splitlines()):
+                if all('disable = yes' in l for l in call('cat /etc/xinetd.conf | grep rexec').splitlines()) and all('disable = yes' in l for l in call('cat /etc/xinetd.d/* | grep rexec').splitlines()):
+                    score += 1
+    else:
+        enabled_inetd.append('rsh')
+    # 2.1.7 talk services
+    if not call('grep -R "^talk" /etc/inetd.*') and not call('grep -R "^ntalk" /etc/inetd.*'):
+        if all('disable = yes' in l for l in call('cat /etc/xinetd.conf | grep talk').splitlines()):
+            score += 1
+    else:
+        enabled_inetd.append('talk')
+
+# 2.1.10 xinetd disabled | chkconfig command not found in debian
+if not call("systemctl is-enabled xinetd"):
+    execute = call('ls /etc/rc*.d | grep xinetd').splitlines()
+    if any(s for s in execute if s.startswith('S')):
+        score += 1
+
+print(str(score) + ' out of ' + str(total_score) + ' are enabled')
