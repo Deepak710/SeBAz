@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 63
+total_score = 76
 
 # calling subprocess function
 
@@ -25,3 +25,7 @@ inetd_services = ['chargen', 'daytime',
 
 # 2.2.1.2 ntp restrict
 ntp_restrict = ['default', 'kod', 'nomodify', 'notrap', 'nopeer', 'noquery']
+
+# 2.2.3 -> 2.2.14 ( - 2.2.7 ) time sync services
+time_sync = ['avahi-daemon', 'cups', 'dhcpd', 'slapd', 'named',
+             'vsftpd', 'httpd', 'dovecot', 'smb', 'squid', 'snmpd']

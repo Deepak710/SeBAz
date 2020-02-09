@@ -1,5 +1,6 @@
-from variables import ntp_restrict
 from variables import total_score
+from variables import time_sync
+from variables import ntp_restrict
 from variables import inetd_services
 from variables import root_permissions
 from variables import tmp_options
@@ -63,7 +64,7 @@ if not non_sticky_world_writable:
     score += 1
 
 # 1.1.22 automounting | chkconfig command not found in debian
-if not call("systemctl is-enabled autofs"):
+if not call("systemctl is-enabled autofs | grep enabled"):
     execute = call('ls /etc/rc*.d | grep autofs').splitlines()
     # automout will contain all filesystems that will mount automatically
     automount = [s for s in execute if s.startswith('S')]
@@ -102,8 +103,7 @@ if not call('sudo grep ^root:[*\!]: /etc/shadow'):
 
 # 1.5.1 restrict core dumps
 if '0' in call('grep "hard core" /etc/security/limits.conf /etc/security/limits.d/*') and '0' in call('sysctl fs.suid_dumpable') and '0' in call('grep "fs\.suid_dumpable" /etc/sysctl.conf /etc/sysctl.d/*'):
-    execute = call('systemctl is-enabled coredump.service')
-    if not execute:
+    if not call('systemctl is-enabled coredump.service'):
         score += 1
     else:
         # check configurations of coredump.service
@@ -216,9 +216,9 @@ else:
         enabled_inetd.append('talk')
 
 # 2.1.10 xinetd disabled | chkconfig command not found in debian
-if not call("systemctl is-enabled xinetd"):
+if not call("systemctl is-enabled xinetd | grep enabled"):
     execute = call('ls /etc/rc*.d | grep xinetd').splitlines()
-    if any(s for s in execute if s.startswith('S')):
+    if not any(s for s in execute if s.startswith('S')):
         score += 1
 
 # 2.2.1.1 is not scored
@@ -232,10 +232,34 @@ if all(o in e for o in ntp_restrict for e in execute):
             score += 1
 del(ntp_restrict)
 
-# 2.2.1.2 chrony configuration
+# 2.2.1.3 chrony configuration
 # check if call('grep -E "^(server|pool)" /etc/chrony.conf') is configured properly
 execute = call('ps -ef | grep chronyd').splitlines()
-if any(p.startswith('fry') for p in execute):
+if any(p.startswith('chrony') for p in execute):
     score += 1
+
+# 2.2.1.4 systemd-timesyncd configuration
+if 'enabled' in call('systemctl is-enabled systemd-timesyncd.service'):
+    # ensure call('timedatectl status') is in accordance with local policy
+    score += 1
+
+# 2.2.2 no X windows system | doing for debian
+if not call('dpkg -l xserver-xorg* | grep ii'):
+    score += 1
+
+# 2.2.3 -> 2.2.14 ( - 2.2.7 ) disable time sync services | chkconfig command not found in debian
+for s in time_sync:
+    if not call("systemctl is-enabled " + s + " | grep enabled"):
+        execute = call('ls /etc/rc*.d | grep ' + s).splitlines()
+        if not any(e for e in execute if e.startswith('S')):
+            score += 1
+del(time_sync)
+# 2.2.7 nfs and rpc
+if not call("systemctl is-enabled nfs | grep enabled") and not call("systemctl is-enabled rpcbind | grep enabled"):
+    execute = call('ls /etc/rc*.d | grep nfs').splitlines()
+    if not any(e for e in execute if e.startswith('S')):
+        execute = call('ls /etc/rc*.d | grep rpcbind').splitlines()
+        if not any(e for e in execute if e.startswith('S')):
+            score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
