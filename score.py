@@ -1,3 +1,4 @@
+from variables import ntp_restrict
 from variables import total_score
 from variables import inetd_services
 from variables import root_permissions
@@ -219,5 +220,22 @@ if not call("systemctl is-enabled xinetd"):
     execute = call('ls /etc/rc*.d | grep xinetd').splitlines()
     if any(s for s in execute if s.startswith('S')):
         score += 1
+
+# 2.2.1.1 is not scored
+
+# 2.2.1.2 ntp configuration
+execute = call('grep "^restrict" /etc/ntp.conf').splitlines()[:2]
+if all(o in e for o in ntp_restrict for e in execute):
+    # check if call('grep -E "^(server|pool)" /etc/ntp.conf') is configured properly
+    if 'OPTIONS="-u ntp:ntp"' in call('grep "^OPTIONS" /etc/sysconfig/ntpd') or 'OPTIONS="-u ntp:ntp"' in call('grep "^NTPD_OPTIONS" /etc/sysconfig/ntp'):
+        if 'RUNASUSER=ntp' in call('grep "RUNASUSER=ntp" /etc/init.d/ntp'):
+            score += 1
+del(ntp_restrict)
+
+# 2.2.1.2 chrony configuration
+# check if call('grep -E "^(server|pool)" /etc/chrony.conf') is configured properly
+execute = call('ps -ef | grep chronyd').splitlines()
+if any(p.startswith('fry') for p in execute):
+    score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')

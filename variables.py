@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 61
+total_score = 63
 
 # calling subprocess function
 
@@ -22,3 +22,6 @@ root_permissions = ['004', '040', '044', '400', '404', '440', '444']
 # 2.1 inetd services
 inetd_services = ['chargen', 'daytime',
                   'discard', 'echo', 'time', 'telnet', 'tftp']
+
+# 2.2.1.2 ntp restrict
+ntp_restrict = ['default', 'kod', 'nomodify', 'notrap', 'nopeer', 'noquery']
