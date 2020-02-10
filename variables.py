@@ -1,12 +1,12 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 76
+total_score = 85 # till 2.3.5
 
 # calling subprocess function
 
 
-def call(execute):
-    return Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True).communicate()[0].decode('utf-8')
+def call(execute, pos = 0):
+    return Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True).communicate()[pos].decode('utf-8')
 
 
 # 1.1.1 Disable unused filesystems
@@ -26,6 +26,9 @@ inetd_services = ['chargen', 'daytime',
 # 2.2.1.2 ntp restrict
 ntp_restrict = ['default', 'kod', 'nomodify', 'notrap', 'nopeer', 'noquery']
 
-# 2.2.3 -> 2.2.14 ( - 2.2.7 ) time sync services
+# 2.2.3 -> 2.2.14 ; 2.2.16 ; 2.2.17 ( - 2.2.7 ) time sync services
 time_sync = ['avahi-daemon', 'cups', 'dhcpd', 'slapd', 'named',
-             'vsftpd', 'httpd', 'dovecot', 'smb', 'squid', 'snmpd']
+             'vsftpd', 'httpd', 'dovecot', 'smb', 'squid', 'snmpd', 'rsyncd', 'ypserv']
+
+# 2.3.1 -> 2.3.4 service clients
+service_clients = ['ypbind', 'rsh', 'talk', 'telnet']

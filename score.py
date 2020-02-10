@@ -1,4 +1,5 @@
 from variables import total_score
+from variables import service_clients
 from variables import time_sync
 from variables import ntp_restrict
 from variables import inetd_services
@@ -120,7 +121,7 @@ if '2' in call('sysctl kernel.randomize_va_space') and '2' in call('grep "kernel
     score += 1
 
 # 1.5.4 Disable prelink {distributon specific} | doing for debian
-if 'not installed' in call('dpkg -s prelink'):
+if 'not installed' in call('dpkg -s prelink', 1):
     score += 1
 
 # 1.6.1.1 SELinux or AppArmour {distribution specific} | doing for debian
@@ -143,10 +144,10 @@ if 'install ok installed' in call('dpkg -s libselinux1'):
         if 'SELINUXTYPE=targeted' in execute:
             score += 1
     # 1.6.2.4 SETroubleshoot not installed
-    if 'not installed' in call('dpkg -s setroubleshoot'):
+    if 'not installed' in call('dpkg -s setroubleshoot', 1):
         score += 1
     # 1.6.2.5 mcstrans not installed
-    if 'not installed' in call('dpkg -s mcstrans'):
+    if 'not installed' in call('dpkg -s mcstrans', 1):
         score += 1
     # 1.6.2.6 unconfigured daemons
     if not call("ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }'"):
@@ -247,7 +248,7 @@ if 'enabled' in call('systemctl is-enabled systemd-timesyncd.service'):
 if not call('dpkg -l xserver-xorg* | grep ii'):
     score += 1
 
-# 2.2.3 -> 2.2.14 ( - 2.2.7 ) disable time sync services | chkconfig command not found in debian
+# 2.2.3 -> 2.2.14 ; 2.2.16 ; 2.2.17 ( - 2.2.7 ) disable time sync services | chkconfig command not found in debian
 for s in time_sync:
     if not call("systemctl is-enabled " + s + " | grep enabled"):
         execute = call('ls /etc/rc*.d | grep ' + s).splitlines()
@@ -261,5 +262,20 @@ if not call("systemctl is-enabled nfs | grep enabled") and not call("systemctl i
         execute = call('ls /etc/rc*.d | grep rpcbind').splitlines()
         if not any(e for e in execute if e.startswith('S')):
             score += 1
+
+# 2.2.15 local only MTA
+if not call("ss -lntu | grep -E ':25\s' | grep -E -v '\s(127.0.0.1|::1):25\s'"):
+    score += 1
+
+# 2.3.1 -> 2.3.4 no NIS client | doing for debian
+installed_service_clients = [
+    c for c in service_clients if 'install ok installed' in call('dpkg -s ' + c)]
+# installed_service_clients contains installed NIS clients
+score += len(service_clients) - len(installed_service_clients)
+del(service_clients)
+
+# 2.3.5 ldap not installed | has alternate names for different packages | doing for debian
+if 'not installed' in call('dpkg -s openldap-clients', 1) and 'not installed' in call('dpkg -s ldap-utils', 1):
+    score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
