@@ -1,4 +1,6 @@
 from variables import total_score
+from variables import net_grep_1, net_sysctl_1
+from variables import net_grep, net_sysctl
 from variables import service_clients
 from variables import time_sync
 from variables import ntp_restrict
@@ -277,5 +279,21 @@ del(service_clients)
 # 2.3.5 ldap not installed | has alternate names for different packages | doing for debian
 if 'not installed' in call('dpkg -s openldap-clients', 1) and 'not installed' in call('dpkg -s ldap-utils', 1):
     score += 1
+
+# 3.1 ; 3.2.1 -> 3.2.3 ; 3.2.9 network parameters
+for s, g in zip(net_sysctl, net_grep):
+    if all(' = 0' in call(c) for c in s):
+        execute = [call(c).splitlines() for c in g]
+        if all('#' or '0' in c for c in execute):
+            score += 1
+del(net_sysctl, net_grep)
+
+# 3.2.4 -> 3.2.8 network parameters
+for s, g in zip(net_sysctl_1, net_grep_1):
+    if all(' = 1' in call(c) for c in s):
+        execute = [call(c).splitlines() for c in g]
+        if all('#' or '1' in c for c in execute):
+            score += 1
+del(net_sysctl_1, net_grep_1)
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
