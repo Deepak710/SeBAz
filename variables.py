@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 96  # till 3.2.9
+total_score = 108  # till 3.7
 
 # calling subprocess function
 
@@ -39,8 +39,11 @@ net_sysctl = [['sysctl net.ipv4.ip_forward', 'sysctl net.ipv6.conf.all.forwardin
 net_grep = [['grep "net\.ipv4\.ip_forward" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.all\.forwarding" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.conf\.all\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*'],
             ['grep "net\.ipv4\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.conf\.all\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv6\.conf\.all\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv6\.conf\.default\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*']]
 
-# 3.2.4
+# 3.2.4 network parameters enabled
 net_sysctl_1 = [['sysctl net.ipv4.conf.all.log_martians', 'sysctl net.ipv4.conf.default.log_martians'], ['sysctl net.ipv4.icmp_echo_ignore_broadcasts'], [
     'sysctl net.ipv4.icmp_ignore_bogus_error_responses'], ['sysctl net.ipv4.conf.all.rp_filter', 'sysctl net.ipv4.conf.default.rp_filter'], ['sysctl net.ipv4.tcp_syncookies']]
 net_grep_1 = [['grep "net\.ipv4\.conf\.all\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.icmp_echo_ignore_broadcasts" /etc/sysctl.conf /etc/sysctl.d/*'],
               ['grep "net.ipv4.icmp_ignore_bogus_error_responses" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.conf\.all\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*', 'grep "net\.ipv4\.conf\.default\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*'], ['grep "net\.ipv4\.tcp_syncookies" /etc/sysctl.conf /etc/sysctl.d/*']]
+
+# 3.4.1 -> 3.4.4 uncommon network protocols
+uncommon_network_protocols = ['dccp', 'sctp', 'rds', 'tipc']

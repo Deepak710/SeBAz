@@ -1,4 +1,5 @@
 from variables import total_score
+from variables import uncommon_network_protocols
 from variables import net_grep_1, net_sysctl_1
 from variables import net_grep, net_sysctl
 from variables import service_clients
@@ -12,10 +13,10 @@ from variables import call
 score = 0
 
 # 1.1.1 unused filesystems
-enabled = [fs for fs in unused_filesystems if fs in call(
-    'modprobe -n -v ' + fs)]
-# enabled contains unused filesystems that are not disabled
-score += len(unused_filesystems) - len(enabled)
+enabled_fs = [
+    fs for fs in unused_filesystems if 'install /bin/true' and 'not found in directory' not in call('modprobe -n -v ' + fs)]
+# enabled_fs contains unused filesystems that are not disabled
+score += len(unused_filesystems) - len(enabled_fs)
 del unused_filesystems
 
 # 1.1.1.8 is not scored
@@ -76,13 +77,13 @@ if not call("systemctl is-enabled autofs | grep enabled"):
 
 
 # 1.1.23 disabled USB
-if not call("modprobe -n -v usb-storage"):
+if 'install /bin/true' and 'not found in directory' not in call("modprobe -n -v usb-storage"):
     score += 1
 
 # 1.2 is not scored
 
 # 1.3.1 AIDE installed is {version specific} [SCORED] ; doing for debian
-if 'install ok installed' in call('dpkg -s aide'):
+if 'install ok installed' in call('dpkg -s aide | grep Status'):
     score += 1
     # 1.3.2 filesystem integrity using AIDE(1.3.1)
     if 'no crontab for root' in call('sudo crontab -u root -l | grep aide'):
@@ -129,7 +130,7 @@ if 'not installed' in call('dpkg -s prelink', 1):
 # 1.6.1.1 SELinux or AppArmour {distribution specific} | doing for debian
 
 # 1.6.2 Configure SELinux
-if 'install ok installed' in call('dpkg -s libselinux1'):
+if 'install ok installed' in call('dpkg -s libselinux1 | grep Status'):
     score += 1
     # 1.6.2.1 not disabled | {depends on bootloader} | changes for GRUB 2
     execute = call('grep "^\s*kernel" /boot/grub/menu.lst')
@@ -156,7 +157,7 @@ if 'install ok installed' in call('dpkg -s libselinux1'):
         score += 1
 
 # 1.6.3 Configure AppArmour
-if 'install ok installed' in call('dpkg -s apparmor'):
+if 'install ok installed' in call('dpkg -s apparmor | grep Status'):
     score += 1
     # 1.6.3.1 not disabled | {depends on bootloader} | changes for GRUB 2
     if 'apparmor=0' not in call('grep "^\s*kernel" /boot/grub/menu.lst') and 'apparmor=0' not in call('grep "^\s*linux" /boot/grub/menu.lst'):
@@ -270,8 +271,8 @@ if not call("ss -lntu | grep -E ':25\s' | grep -E -v '\s(127.0.0.1|::1):25\s'"):
     score += 1
 
 # 2.3.1 -> 2.3.4 no NIS client | doing for debian
-installed_service_clients = [
-    c for c in service_clients if 'install ok installed' in call('dpkg -s ' + c)]
+installed_service_clients = [c for c in service_clients if 'install ok installed' in call(
+    'dpkg -s ' + c + ' | grep Status')]
 # installed_service_clients contains installed NIS clients
 score += len(service_clients) - len(installed_service_clients)
 del(service_clients)
@@ -295,5 +296,87 @@ for s, g in zip(net_sysctl_1, net_grep_1):
         if all('#' or '1' in c for c in execute):
             score += 1
 del(net_sysctl_1, net_grep_1)
+
+# 3.3.1 -> 3.3.3 is not scored
+
+# 3.3.4 configure hosts.allow
+if '0644/-rw-r--r--' in call('stat /etc/hosts.allow | grep Access'):
+    score += 1
+
+# 3.3.5 configure hosts.deny
+if '0644/-rw-r--r--' in call('stat /etc/hosts.deny | grep Access'):
+    score += 1
+
+# 3.4.1 -> 3.4.4 disable uncommon network protocols
+enabled_pr = [
+    pr for pr in uncommon_network_protocols if 'install /bin/true' and 'not found in directory' not in call('modprobe -n -v ' + pr)]
+# enabled_pr contains unused protocols that are not disabled
+score += len(uncommon_network_protocols) - len(enabled_pr)
+del(uncommon_network_protocols)
+
+# 3.5.1.1 ipv6 default block policy
+if all('policy DROP' or 'policy REJECT' in e for e in call('sudo ip6tables -L | grep Chain').splitlines()):
+    if not call('grep "^\s*linux" /boot/grub/grub.cfg | grep -v ipv6.disable=1'):
+        score += 1
+
+# 3.5.1.2 ipv6 configured loopback | WORSTU CODE
+execute = call('sudo ip6tables -L INPUT -v -n').splitlines()
+if len(execute) > 2:
+    f = 0
+    for i in range(2, len(execute)):
+        if (execute[i].split()[6] == '::/0' or execute[i].split()[6] == '::1') and (execute[i].split()[7] == '::1' or execute[i].split()[7] == '::/0'):
+            f += 1
+    if f == len(execute) - 2:
+        execute = call('sudo ip6tables -L OUTPUT -v -n').splitlines()
+        if len(execute) > 2:
+            f = 0
+            for i in range(2, len(execute)):
+                if (execute[i].split()[6] == '::/0' or execute[i].split()[6] == '::1') and (execute[i].split()[7] == '::1' or execute[i].split()[7] == '::/0'):
+                    f += 1
+            if f == len(execute) - 2:
+                if not call('grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1'):
+                    score += 1
+
+# 3.5.1.3 ; 3.5.1.4 is not scored
+
+# 3.5.2.1 default deny firewall
+if all('policy DROP' or 'policy REJECT' in e for e in call('sudo iptables -L | grep Chain').splitlines()):
+    score += 1
+
+# 3.5.2.2 configure loopback traffic | WORSTU CODE
+execute = call('sudo iptables -L INPUT -v -n').splitlines()
+if len(execute) > 2:
+    f = 0
+    for i in range(2, len(execute)):
+        if (execute[i].split()[7] == '0.0.0.0/0' or execute[i].split()[7] == '127.0.0.0/8') and (execute[i].split()[8] == '0.0.0.0/0' or execute[i].split()[8] == '127.0.0.0/8'):
+            f += 1
+    if f == len(execute) - 2:
+        execute = call('sudo iptables -L OUTPUT -v -n').splitlines()
+        if len(execute) > 2:
+            f = 0
+            for i in range(2, len(execute)):
+                if (execute[i].split()[7] == '0.0.0.0/0' or execute[i].split()[7] == '127.0.0.0/8') and (execute[i].split()[8] == '0.0.0.0/0' or execute[i].split()[8] == '127.0.0.0/8'):
+                    f += 1
+            if f == len(execute) - 2:
+                score += 1
+
+# 3.5.2.3 is not scored
+
+# 3.5.2.4 firewall rules for open ports
+execute = call('ss -4tuln').splitlines()[1:]
+if execute:
+    open_ports = [e.split()[4] for e in execute]
+    open_ports = [e[e.rfind(':'):].strip(':') for e in open_ports]
+    if all(call('sudo iptables -L INPUT -v -n | grep ' + e) for e in open_ports):
+        score += 1
+else:
+    # scoring if there are no open ports
+    score += 1
+
+# 3.5.6 install iptables
+if ('install ok installed' in call('dpkg -s iptables | grep Status')):
+    score += 1
+
+# 3.6 ; 3.7 not scored
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
