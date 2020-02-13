@@ -363,10 +363,12 @@ if len(execute) > 2:
 # 3.5.2.3 is not scored
 
 # 3.5.2.4 firewall rules for open ports
+# getting all open ports
 execute = call('ss -4tuln').splitlines()[1:]
 if execute:
     open_ports = [e.split()[4] for e in execute]
     open_ports = [e[e.rfind(':'):].strip(':') for e in open_ports]
+    # checking for rules foor open ports
     if all(call('sudo iptables -L INPUT -v -n | grep ' + e) for e in open_ports):
         score += 1
 else:
@@ -378,5 +380,60 @@ if ('install ok installed' in call('dpkg -s iptables | grep Status')):
     score += 1
 
 # 3.6 ; 3.7 not scored
+
+# 4.1.1.1 audit log storage size
+if call('grep max_log_file /etc/audit/auditd.conf'):
+    score += 1
+
+# 4.1.1.2 disable system when audit is full
+if call('grep space_left_action /etc/audit/auditd.conf') and call('grep action_mail_acct /etc/audit/auditd.conf') and call('grep admin_space_left_action /etc/audit/auditd.conf'):
+    score += 1
+
+# 4.1.1.3 audit logs are not automatically deleted
+if 'max_log_file_action = keep_logs' in call('grep max_log_file_action /etc/audit/auditd.conf'):
+    score += 1
+
+# 4.1.2 auditd installed
+if 'install ok installed' in call('dpkg -s auditd audispd-plugins | grep Status'):
+    score += 1
+
+# 4.1.3 enable auditd
+if call("systemctl is-enabled auditd | grep enabled"):
+    execute = call('ls /etc/rc*.d | grep auditd').splitlines()
+    # S* lines returned for runlevels 2 through 5
+    if all(s for s in execute if s.startswith('S')):
+        score += 1
+
+# 4.1.4 audit befoore auditd starts
+execute = call('grep "^\s*linux" /boot/grub*/grub.cfg').splitlines()
+if all('audit=1' in e for e in execute):
+    execute = call('grep "^\s*kernel" /boot/grub*/menu.lst').splitlines()
+    if all('audit=1' in e for e in execute):
+        score += 1
+
+# 4.1.5 -> 4.1.18 - 4.1.13 collect events | arch dependent
+if 'No such file or directory' not in call('ls /etc/audit/rules.d/*.rules'):
+    from variables import audit_events
+    for e in audit_events:
+        if call("grep -E '" + e + "' /etc/audit/rules.d/*.rules"):
+            if call("auditctl -l | grep -E '" + e + "'"):
+                score += 1
+    del(audit_events)
+
+# 4.1.13 collect priviedged commands | DON'T KNOW IF CORRECT
+partitions = call('mount | grep -e "/dev/sd"').splitlines()
+execute = [call(
+    "find " + e + " -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print \"-a always,exit -F path=\" $1 \" -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged\" }'") for e in partitions]
+if execute:
+    f = 0
+    for e in execute:
+        if all(call('cat ' + l + ' | grep auid!=-1') for l in e.splitlines()):
+            f += 1
+    if f:
+        score += 1
+
+# 4.1.19 immutable audit configurations
+if '-e 2' in call('grep "^\s*[^#]" /etc/audit/rules.d/*.rules | tail -1'):
+    score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')

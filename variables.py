@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 108  # till 3.7
+total_score = 129  # till 4.1.19
 
 # calling subprocess function
 
@@ -47,3 +47,7 @@ net_grep_1 = [['grep "net\.ipv4\.conf\.all\.log_martians" /etc/sysctl.conf /etc/
 
 # 3.4.1 -> 3.4.4 uncommon network protocols
 uncommon_network_protocols = ['dccp', 'sctp', 'rds', 'tipc']
+
+# 4.1.5 -> 4.1.18  - 4.1.13 collect audit events
+audit_events = ['time-change', 'identity', 'system-locale', 'MAC-policy', 'logins',
+                '(session|logins)', 'perm_mod', 'access', 'mounts', 'delete', 'scope', 'actions', 'modules']
