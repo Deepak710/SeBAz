@@ -1,4 +1,5 @@
 from variables import total_score
+from variables import etc_cron
 from variables import uncommon_network_protocols
 from variables import net_grep_1, net_sysctl_1
 from variables import net_grep, net_sysctl
@@ -13,8 +14,8 @@ from variables import call
 score = 0
 
 # 1.1.1 unused filesystems
-enabled_fs = [
-    fs for fs in unused_filesystems if 'install /bin/true' and 'not found in directory' not in call('modprobe -n -v ' + fs)]
+enabled_fs = [fs for fs in unused_filesystems if 'install /bin/true' not in call(
+    'modprobe -n -v ' + fs) and 'not found in directory' not in call('modprobe -n -v ' + fs, 1)]
 # enabled_fs contains unused filesystems that are not disabled
 score += len(unused_filesystems) - len(enabled_fs)
 del unused_filesystems
@@ -77,7 +78,7 @@ if not call("systemctl is-enabled autofs | grep enabled"):
 
 
 # 1.1.23 disabled USB
-if 'install /bin/true' and 'not found in directory' not in call("modprobe -n -v usb-storage"):
+if 'install /bin/true' in call("modprobe -n -v usb-storage") or 'not found in directory' in call("modprobe -n -v usb-storage", 1):
     score += 1
 
 # 1.2 is not scored
@@ -90,8 +91,8 @@ if 'install ok installed' in call('dpkg -s aide | grep Status'):
         score += 1
 
 # 1.4.1 bootloader configuration {depends on bootloader} ; doing for GRUB
-execute = call('stat /boot/grub*/grub.cfg | grep Access')
-if any(p in execute for p in root_permissions):
+execute = call('stat /boot/grub*/grub.cfg | grep Access').splitlines()[0]
+if any(p in execute for p in root_permissions) and 'Uid: (    0/    root)   Gid: (    0/    root)' in execute:
     score += 1
 del(root_permissions)
 
@@ -160,7 +161,7 @@ if 'install ok installed' in call('dpkg -s libselinux1 | grep Status'):
 if 'install ok installed' in call('dpkg -s apparmor | grep Status'):
     score += 1
     # 1.6.3.1 not disabled | {depends on bootloader} | changes for GRUB 2
-    if 'apparmor=0' not in call('grep "^\s*kernel" /boot/grub/menu.lst') and 'apparmor=0' not in call('grep "^\s*linux" /boot/grub/menu.lst'):
+    if 'apparmor=0' not in call('grep "^\s*kernel" /boot/grub*/menu.lst') and 'apparmor=0' not in call('grep "^\s*linux" /boot/grub*/menu.lst'):
         score += 1
     # 1.6.3.2 profiles are enforcing
     execute = call('sudo apparmor_status')
@@ -180,15 +181,15 @@ if not call("grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -
     score += 1
 
 # 1.7.1.4 /etc/motd permission configurations
-if '0644/-rw-r--r--' in call('stat /etc/motd | grep Access'):
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/motd | grep Access').splitlines()[0]:
     score += 1
 
 # 1.7.1.5 /etc/issue permission configurations
-if '0644/-rw-r--r--' in call('stat /etc/issue | grep Access'):
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/issue | grep Access').splitlines()[0]:
     score += 1
 
-# 1.7.1.5 /etc/issue.net permission configurations
-if '0644/-rw-r--r--' in call('stat /etc/issue.net | grep Access'):
+# 1.7.1.6 /etc/issue.net permission configurations
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/issue.net | grep Access').splitlines()[0]:
     score += 1
 
 # 1.7.2 GDM login banner | if message exists, comply with policy | DIFFERS FOR LOGIN SERVICES
@@ -285,7 +286,7 @@ if 'not installed' in call('dpkg -s openldap-clients', 1) and 'not installed' in
 for s, g in zip(net_sysctl, net_grep):
     if all(' = 0' in call(c) for c in s):
         execute = [call(c).splitlines() for c in g]
-        if all('#' or '0' in c for c in execute):
+        if all('#' in c or '0' in c for c in execute):
             score += 1
 del(net_sysctl, net_grep)
 
@@ -293,30 +294,30 @@ del(net_sysctl, net_grep)
 for s, g in zip(net_sysctl_1, net_grep_1):
     if all(' = 1' in call(c) for c in s):
         execute = [call(c).splitlines() for c in g]
-        if all('#' or '1' in c for c in execute):
+        if all('#' in c or '1' in c for c in execute):
             score += 1
 del(net_sysctl_1, net_grep_1)
 
 # 3.3.1 -> 3.3.3 is not scored
 
 # 3.3.4 configure hosts.allow
-if '0644/-rw-r--r--' in call('stat /etc/hosts.allow | grep Access'):
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/hosts.allow | grep Access').splitlines()[0]:
     score += 1
 
 # 3.3.5 configure hosts.deny
-if '0644/-rw-r--r--' in call('stat /etc/hosts.deny | grep Access'):
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/hosts.deny | grep Access').splitlines()[0]:
     score += 1
 
 # 3.4.1 -> 3.4.4 disable uncommon network protocols
-enabled_pr = [
-    pr for pr in uncommon_network_protocols if 'install /bin/true' and 'not found in directory' not in call('modprobe -n -v ' + pr)]
+enabled_pr = [pr for pr in uncommon_network_protocols if 'install /bin/true' not in call(
+    'modprobe -n -v ' + pr) and 'not found in directory' not in call('modprobe -n -v ' + pr, 1)]
 # enabled_pr contains unused protocols that are not disabled
 score += len(uncommon_network_protocols) - len(enabled_pr)
 del(uncommon_network_protocols)
 
 # 3.5.1.1 ipv6 default block policy
-if all('policy DROP' or 'policy REJECT' in e for e in call('sudo ip6tables -L | grep Chain').splitlines()):
-    if not call('grep "^\s*linux" /boot/grub/grub.cfg | grep -v ipv6.disable=1'):
+if all('policy DROP' in e or 'policy REJECT' in e for e in call('sudo ip6tables -L | grep Chain').splitlines()):
+    if not call('grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1'):
         score += 1
 
 # 3.5.1.2 ipv6 configured loopback | WORSTU CODE
@@ -340,7 +341,7 @@ if len(execute) > 2:
 # 3.5.1.3 ; 3.5.1.4 is not scored
 
 # 3.5.2.1 default deny firewall
-if all('policy DROP' or 'policy REJECT' in e for e in call('sudo iptables -L | grep Chain').splitlines()):
+if all('policy DROP' in e or 'policy REJECT' in e for e in call('sudo iptables -L | grep Chain').splitlines()):
     score += 1
 
 # 3.5.2.2 configure loopback traffic | WORSTU CODE
@@ -434,6 +435,102 @@ if execute:
 
 # 4.1.19 immutable audit configurations
 if '-e 2' in call('grep "^\s*[^#]" /etc/audit/rules.d/*.rules | tail -1'):
+    score += 1
+
+# 4.2.1.1 install rssyslog
+if 'install ok installed' in call('dpkg -s rsyslog | grep Status'):
+    score += 1
+
+# 4.2.1.2 enable syslog
+if call("systemctl is-enabled rsyslog | grep enabled"):
+    execute = call('ls /etc/rc*.d | grep rsyslog').splitlines()
+    # S* lines returned for runlevels 2 through 5
+    if all(s for s in execute if s.startswith('S')):
+        score += 1
+
+# 4.2.1.3 is not scored
+
+# 4.2.1.4 rsyslog file permissions
+execute = call(
+    'grep ^\$FileCreateMode /etc/rsyslog.conf /etc/rsyslog.d/*.conf').splitlines()
+if all('$FileCreateMode 0640' in e and 'No such file or directory' not in e for e in execute):
+    score += 1
+
+# 4.2.1.5 send logs to remote log host
+execute = call('grep "^*.*[^I][^I]*@" /etc/rsyslog.conf /etc/rsyslog.d/*.conf')
+if execute and 'No such file or directory' not in execute:
+    score += 1
+
+# 4.2.1.6 is not scored
+
+# 4.2.2.1 configure journald forward
+if 'ForwardToSyslog=yes' in call('grep -e ForwardToSyslog /etc/systemd/journald.conf'):
+    score += 1
+
+# 4.2.2.2 configure journald compress
+if 'Compress=yes' in call('grep -e Compress /etc/systemd/journald.conf'):
+    score += 1
+
+# 4.2.2.3 configure journald
+if 'Storage=persistent' in call('grep -e Storage /etc/systemd/journald.conf'):
+    score += 1
+
+# 4.2.3 configure group and other permissioon on log files
+execute = call('sudo find /var/log -type f -ls').splitlines()
+if all('r-----' == e.split()[2][-6:] or '------' == e.split()[2][-6:] for e in execute):
+    score += 1
+
+# 4.3 is not scored
+
+# 5.1.1 configure cron daemon
+if call("systemctl is-enabled crond | grep enabled"):
+    execute = call('ls /etc/rc*.d | grep crond').splitlines()
+    # S* lines returned for runlevels 2 through 5
+    if all(s for s in execute if s.startswith('S')):
+        score += 1
+
+# 5.1.2 configure permissions on /etc/crontab
+if 'Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in call('stat /etc/crontab | grep Access').splitlines()[0]:
+    score += 1
+
+# 5.1.3 -> 5.1.7 configure permissions on /etc/cron
+for e in etc_cron:
+    execute = call('stat /etc/cron.' + e + ' | grep Access').splitlines()[0]
+    if '------' == execute.split()[1][-7:-1] and 'Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+        score += 1
+del(etc_cron)
+
+# 5.1.8 no cron.deny and configure cron.allow
+if 'No such file or directory' in call('stat /etc/cron.deny', 1) and 'No such file or directory' in call('stat /etc/at.deny', 1):
+    execute = call('stat /etc/cron.allow | grep Access')
+    if execute and '------' == execute.splitlines()[0].split()[1][-7:-1] and 'Uid: (    0/    root)   Gid: (    0/    root)' in execute.splitlines()[0]:
+        execute = call('stat /etc/at.allow | grep Access')
+        if execute and '------' == execute.splitlines()[0].split()[1][-7:-1] and 'Uid: (    0/    root)   Gid: (    0/    root)' in execute.splitlines()[0]:
+            score += 1
+
+# 5.2.1 configure /etc/ssh/sshd_config permissions
+execute = call('stat /etc/ssh/sshd_config | grep Access').splitlines()[0]
+if execute and '------' == execute.split()[1][-7:-1] and 'Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 5.2.2 SSH private host key permissions
+execute = call(
+    "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \; | grep \"Access: (\"").splitlines()
+if all('------' in e.split()[1][-7:-1] and 'Uid: (    0/    root)   Gid: (    0/    root)' in e for e in execute):
+    score += 1
+
+# 5.2.3 SSH public host key permissions
+execute = call(
+    "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \; | grep \"Access: (\"").splitlines()
+if all(('------' in e.split()[1][-7:-1] or 'r--r--' in e.split()[1][-7:-1] or 'r-----' in e.split()[1][-7:-1] or '---r--' in e.split()[1][-7:-1]) and 'Uid: (    0/    root)   Gid: (    0/    root)' in e for e in execute):
+    score += 1
+
+# 5.2.4 SSH Protocol 2
+if 'Protocol 2' in call('grep ^Protocol /etc/ssh/sshd_config'):
+    score += 1
+
+# 5.2.5 appropriate SSH LogLevel
+if 'loglevel INFO' or 'loglevel VERBOSE' in call('sshd -T | grep loglevel'):
     score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
