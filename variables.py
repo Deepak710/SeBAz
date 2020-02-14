@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 179  # till 5.6
+total_score = 210
 
 # calling subprocess function
 

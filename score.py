@@ -725,4 +725,162 @@ if any('auth       required   pam_wheel.so use_uid' in e and not e.startswith('#
     if call('grep wheel /etc/group').startswith('wheel:x:10:root,'):
         score += 1
 
+# 6.1.1 is not scored
+
+# 6.1.2 configure permissions of /etc/passwd
+execute = call('stat /etc/passwd | grep Access').splitlines()[0]
+if '(0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 6.1.3 configure permissions of /etc/shadow
+execute = call('stat /etc/shadow | grep Access').splitlines()[0]
+if '(0640/-rw-r-----)  Uid: (    0/    root)   Gid: (    0/    root)' or '(0600/-rw-------)  Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 6.1.4 configure permissions of /etc/group
+execute = call('stat /etc/group | grep Access').splitlines()[0]
+if '(0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 6.1.5 configure permissions of /etc/gshadow
+execute = call('stat /etc/gshadow | grep Access').splitlines()[0]
+if ('(0640/-rw-r-----)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))) or ('(0600/-rw-------)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))):
+    score += 1
+
+# 6.1.6 configure permissions of /etc/passwd-
+execute = call('stat /etc/passwd- | grep Access').splitlines()[0]
+if '(0600/-rw-------)  Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 6.1.7 configure permissions of /etc/shadow-
+execute = call('stat /etc/shadow- | grep Access').splitlines()[0]
+if ('(0640/-rw-r-----)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))) or ('(0600/-rw-------)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))):
+    score += 1
+
+# 6.1.8 configure permissions of /etc/group-
+execute = call('stat /etc/group- | grep Access').splitlines()[0]
+if '(0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)' or '(0640/-rw-r-----)  Uid: (    0/    root)   Gid: (    0/    root)' or '(0604/-rw----r--)  Uid: (    0/    root)   Gid: (    0/    root)' or '(0600/-rw-------)  Uid: (    0/    root)   Gid: (    0/    root)' in execute:
+    score += 1
+
+# 6.1.9 configure permissions of /etc/gshadow-
+execute = call('stat /etc/gshadow- | grep Access').splitlines()[0]
+if ('(0640/-rw-r-----)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))) or ('(0600/-rw-------)  Uid: (    0/    root)   Gid: (' in execute and execute.endswith(('0/    root)', 'shadow)'))):
+    score += 1
+
+# 6.1.10 no world writable files | DO FOR ALL NETWORK PARTITIONS
+world_writable = call(
+    "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002").splitlines()
+if not world_writable:
+    score += 1
+
+# 6.1.11 no unowned files/directories | DO FOR ALL NETWORK PARTITIONS
+unowned = call(
+    "df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser")
+# there will be many files/directories whose read permission is denied
+if not unowned:
+    score += 1
+
+# 6.1.12 no ungrouped files/directories | DO FOR ALL NETWORK PARTITIONS
+ungrouped = call(
+    "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup")
+# there will be many files/directories whose read permission is denied
+if not ungrouped:
+    score += 1
+
+# 6.1.13 ; 6.1.14 are not scored
+
+# 6.2.1 no account without password
+if not call("sudo awk -F: '($2 == \"\" ) { print $1 \" does not have a password \"}' /etc/shadow"):
+    score += 1
+
+# 6.2.2 remove legacy entries in /etc/passwd
+if not call("grep '^\+:' /etc/passwd"):
+    score += 1
+
+# 6.2.3 remove legacy entries in /etc/shadow
+if not call("sudo grep '^\+:' /etc/shadow"):
+    score += 1
+
+# 6.2.4 remove legacy entries in /etc/group
+if not call("grep '^\+:' /etc/group"):
+    score += 1
+
+# 6.2.5 root only UID 0 account
+if 'root' == call("awk -F: '($3 == 0) { print $1 }' /etc/passwd"):
+    score += 1
+
+# 6.2.6 ensure root PATH integrity
+call('chmod +x ./scripts/root_path_integrity.sh')
+if not call('./scripts/root_path_integrity.sh'):
+    score += 1
+
+# 6.2.7 seperate home directories
+call('chmod +x ./scripts/home_directories.sh')
+if not any('does not exist.' in e for e in call('./scripts/home_directories.sh').splitlines()):
+    score += 1
+
+# 6.2.8 home directory permissions
+call('chmod +x ./scripts/home_directory_permissions.sh')
+if not any('permission set on the home directory' in e for e in call('./scripts/home_directory_permissions.sh').splitlines()):
+    score += 1
+
+# 6.2.9 users own home directory
+call('chmod +x ./scripts/own_home_directory.sh')
+if not any('is owned by' in e for e in call('./scripts/own_home_directory.sh').splitlines()):
+    score += 1
+
+# 6.2.10 user dot files is not writable by group/world
+call('chmod +x ./scripts/user_dot_file.sh')
+if not any('Write permission set on file' in e for e in call('./scripts/user_dot_file.sh').splitlines()):
+    score += 1
+
+# 6.2.11 no user .forward files
+call('chmod +x ./scripts/user_forward_file.sh')
+if not any('.forward exists' in e for e in call('./scripts/user_forward_file.sh').splitlines()):
+    score += 1
+
+# 6.2.12 no user .netrc files
+call('chmod +x ./scripts/user_netrc_file.sh')
+if not any('.netrc exists' in e for e in call('./scripts/user_netrc_file.sh').splitlines()):
+    score += 1
+
+# 6.2.13 user .netrc file not group/world writable
+call('chmod +x ./scripts/user_netrc_writable.sh')
+if not any('set on' in e for e in call('./scripts/user_netrc_writable.sh').splitlines()):
+    score += 1
+
+# 6.2.14 no user .rhosts files
+call('chmod +x ./scripts/user_rhosts_file.sh')
+if not any('.rhosts file in' in e for e in call('./scripts/user_rhosts_file.sh').splitlines()):
+    score += 1
+
+# 6.2.15 all groups in /etc/passwd in /etc/group
+call('chmod +x ./scripts/group_passwd.sh')
+if not any('is referenced by /etc/passwd but does not exist in /etc/group' in e for e in call('./scripts/group_passwd.sh').splitlines()):
+    score += 1
+
+# 6.2.16 no duplicate UID
+call('chmod +x ./scripts/duplicate_uid.sh')
+if not any('Duplicate UID' in e for e in call('./scripts/duplicate_uid.sh').splitlines()):
+    score += 1
+
+# 6.2.17 no duplicate GID
+call('chmod +x ./scripts/duplicate_gid.sh')
+if not any('Duplicate GID' in e for e in call('./scripts/duplicate_gid.sh').splitlines()):
+    score += 1
+
+# 6.2.18 no duplicate User Name
+call('chmod +x ./scripts/duplicate_user_name.sh')
+if not any('Duplicate User Name' in e for e in call('./scripts/duplicate_user_name.sh').splitlines()):
+    score += 1
+
+# 6.2.19 no duplicate Group Name
+call('chmod +x ./scripts/duplicate_group_name.sh')
+if not any('Duplicate Group Name' in e for e in call('./scripts/duplicate_group_name.sh').splitlines()):
+    score += 1
+
+# 6.2.20 empty shadow group
+if not call('grep ^shadow:[^:]*:[^:]*:[^:]+ /etc/group') and not call("awk -F: '($4 == \"<shadow-gid>\") { print }' /etc/passwd"):
+    score += 1
+
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')
