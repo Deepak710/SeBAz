@@ -1,4 +1,5 @@
 from variables import total_score
+from variables import umask_permissions
 from variables import pwd_req
 from variables import weak_keys
 from variables import weak_mac
@@ -691,5 +692,37 @@ else:
     if all(datetime.strptime(e.split(' : ')[1], '%b %d, %Y') < d for e in execute):
         score += 1
     del(datetime)
+
+# 5.4.2 secure system accounts
+if not call('awk -F: \'($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $1!~/^\+/ && $3<\'"$(awk \'/^\s*UID_MIN/{print $2}\' /etc/login.defs)"\' && $7!="\'"$(which nologin)"\'" && $7!="/bin/false") {print}\' /etc/passwd'):
+    if not call('awk -F: \'($1!="root" && $1!~/^\+/ && $3<\'"$(awk \'/^\s*UID_MIN/{print $2}\' /etc/login.defs)"\') {print $1}\' /etc/passwd | xargs -I \'{}\' sudo passwd -S \'{}\' | awk \'($2!="L" && $2!="LK") {print $1}\''):
+        score += 1
+
+# 5.4.3 root account GID 0
+if '0' == call('grep "^root:" /etc/passwd | cut -f4 -d:'):
+    score += 1
+
+# 5.4.4 restrict user umask
+execute = call('grep "umask" /etc/bashrc')
+if execute and any(u in execute.split()[1][-2:] for u in umask_permissions):
+    execute = call('grep "umask" /etc/profile /etc/profile.d/*.sh').splitlines
+    if execute and all(e.split()[1][-2:] in umask_permissions for e in execute):
+        score += 1
+del(umask_permissions)
+
+# 5.4.5 user shell timeout less than 900 seconds
+execute = call('grep "^TMOUT" /etc/bashrc')
+if execute and int(execute.split('=')[1]) <= 900:
+    execute = call('grep "^TMOUT" /etc/profile')
+    if execute and int(execute.split('=')[1]) <= 900:
+        score += 1
+
+# 5.5 is not scored
+
+# 5.6 restrict access to su
+execute = call('grep pam_wheel.so /etc/pam.d/su').splitlines()
+if any('auth       required   pam_wheel.so use_uid' in e and not e.startswith('#') for e in execute):
+    if call('grep wheel /etc/group').startswith('wheel:x:10:root,'):
+        score += 1
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')

@@ -1,6 +1,6 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 174  # till 5.4.1.5
+total_score = 179  # till 5.6
 
 # calling subprocess function
 
@@ -70,3 +70,6 @@ weak_keys = ['diffie-hellman-group1-sha1',
 # 5.3.1 password requirements
 pwd_req = ['minlen=14', 'dcredit=-1',
            'ucredit=-1', 'ocredit=-1', 'lcredit=-1']
+
+# 5.4.4 umask permissions
+umask_permissions = ['22', '23', '27', '32', '33', '37', '72', '73', '77']
