@@ -1,4 +1,8 @@
 from variables import total_score
+from variables import pwd_req
+from variables import weak_keys
+from variables import weak_mac
+from variables import weak_cyphers
 from variables import etc_cron
 from variables import uncommon_network_protocols
 from variables import net_grep_1, net_sysctl_1
@@ -532,5 +536,160 @@ if 'Protocol 2' in call('grep ^Protocol /etc/ssh/sshd_config'):
 # 5.2.5 appropriate SSH LogLevel
 if 'loglevel INFO' or 'loglevel VERBOSE' in call('sshd -T | grep loglevel'):
     score += 1
+
+# 5.2.6 SSH X11 forwarding disabled
+if 'X11Forwarding no' in call('sshd -T | grep x11forwarding'):
+    score += 1
+
+# 5.2.7 SSH MaxAuthTries is 4 or less
+execute = call('sshd -T | grep maxauthtries').splitlines()
+if execute:
+    e = execute.split()[-1]
+    if e.isdigit() and int(e) <= 4:
+        score += 1
+
+# 5.2.8 SSH enable IgnoreHosts
+if 'IgnoreRhosts yes' in call('sshd -T | grep ignorerhost'):
+    score += 1
+
+# 5.2.9 disable SSH HostbasedAuthentication
+if 'HostbasedAuthentication no' in call('sshd -T | grephostbasedauthentication'):
+    score += 1
+
+# 5.2.10 disable SSH root login
+if 'PermitRootLogin no' in call('sshd -T | grep permitrootlogin'):
+    score += 1
+
+# 5.2.11 disable SSH PermitEmptyPasswords
+if 'PermitEmptyPasswords no' in call('sshd -T | grep permitemptypasswords'):
+    score += 1
+
+# 5.2.12 disable SSH PermitUserEnvironment
+if 'PermitUserEnvironment no' in call('sshd -T | grep permituserenvironment'):
+    score += 1
+
+# 5.2.13 use strong ciphers
+execute = call('sshd -T | grep ciphers').splitlines()
+weak_cyphers_used = [c for c in weak_cyphers if c in execute]
+if not weak_cyphers_used:
+    score += 1
+del(weak_cyphers)
+
+# 5.2.14 use strong MAC algorithms
+execute = call('sshd -T | grep -i "MACs"').splitlines()
+weak_mac_used = [m for m in weak_mac if m in execute]
+if not weak_mac_used:
+    score += 1
+del(weak_mac)
+
+# 5.2.15 use strong Key Exchange algorithms
+execute = call('sshd -T | grep kexalgorithms').splitlines()
+weak_keys_used = [k for k in weak_keys if k in execute]
+if not weak_keys_used:
+    score += 1
+del(weak_keys)
+
+# 5.2.16 configure SSH Idle Timeout
+execute = call('sshd -T | grep clientaliveinterval').splitlines()
+if execute:
+    e = execute.split()[-1]
+    if e.isdigit() and 1 <= int(e) <= 300:
+        execute = call('sshd -T | grep clientalivecountmax').splitlines()
+        if execute:
+            e = execute.split()[-1]
+            if e.isdigit() and int(e) <= 3:
+                score += 1
+
+# 5.2.17 configure SSH LoginGraceTme
+execute = call('sshd -T | grep logingracetime').splitlines()
+if execute:
+    e = execute.split()[-1]
+    if e.isdigit() and 1 <= int(e) <= 60:
+        score += 1
+
+# 5.2.18 limit SSH access
+if call('sshd -T | grep allowusers') or call('sshd -T | grep allowgroups') or call('sshd -T | grep denyusers') or call('sshd -T | grep denygroups'):
+    score += 1
+
+# 5.2.19 SSH warning banner
+if 'Banner /etc/issue.net' in call('sshd -T | grep banner'):
+    score += 1
+
+# 5.2.20 enable SSH PAM
+if 'usepam yes' in call('sshd -T | grep -i usepam'):
+    score += 1
+
+# 5.2.21 disable SSH TCP Forwarding
+if 'AllowTcpForwarding no' in call('sshd -T | grep -i allowtcpforwarding'):
+    score += 1
+
+# 5.2.22 configure SSH MaxStartups | MATCH SITE POLICY
+if 'maxstartups 10:30:60' in call('sshd -T | grep -i maxstartups'):
+    score += 1
+
+# 5.2.23 configure SSH MaxSessions
+execute = call('sshd -T | grep -i maxsessions').splitlines()
+if execute:
+    e = execute.split()[-1]
+    if e.isdigit() and int(e) <= 4:
+        score += 1
+
+# 5.3.1 configure password creation requirements
+execute = call(
+    'sudo cat /etc/pam.d/common-password | grep -E "password required pam_cracklib.so"')
+if execute and not execute.startswith('#'):
+    if all(r in execute for r in pwd_req):
+        score += 1
+else:
+    execute = call(
+        'sudo cat /etc/pam.d/common-password | grep -E "password requisite pam_pwquality.so"')
+    if execute and not execute.startswith('#'):
+        execute = call('sudo cat /etc/security/pwquality.conf').splitlines()
+        if all(p.replace('=', ' = ') in execute for p in pwd_req):
+            score += 1
+del(pwd_req)
+
+# 5.3.2 -> 5.3.4 is not scored
+
+# 5.4.1.1 password expiration less than 365 days
+execute = call('grep PASS_MAX_DAYS /etc/login.defs').splitlines()
+if execute[1].split()[1].isdigit() and int(execute[1].split()[1]) != -1 and int(execute[1].split()[1]) <= 365:
+    execute = call(
+        "sudo grep -E '^[^:]+:[^!*]' /etc/shadow | cut -d: -f1,5").splitlines()
+    if all(int(e.split(':')[1]) <= 365 for e in execute):
+        score += 1
+
+# 5.4.1.2 password minimum 7 days between change
+execute = call('grep PASS_MIN_DAYS /etc/login.defs').splitlines()
+if execute[1].split()[1].isdigit() and int(execute[1].split()[1]) != -1 and int(execute[1].split()[1]) >= 7:
+    execute = call(
+        "sudo grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,4").splitlines()
+    if all(int(e.split(':')[1]) >= 7 for e in execute):
+        score += 1
+
+# 5.4.1.3 password expiration warning more than 7 days
+execute = call('grep PASS_WARN_AGE /etc/login.defs').splitlines()
+if execute[1].split()[1].isdigit() and int(execute[1].split()[1]) != -1 and int(execute[1].split()[1]) >= 7:
+    execute = call(
+        "sudo grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,6").splitlines()
+    if all(int(e.split(':')[1]) >= 7 for e in execute):
+        score += 1
+
+# 5.4.1.4 inactive password lock maximum 30 days
+execute = call('useradd -D | grep INACTIVE')
+if execute.split('=')[1].rstrip().isdigit() and int(execute.split('=')[1].rstrip()) != -1 and int(execute.split('=')[1].rstrip()) <= 30:
+    score += 1
+
+# 5.4.1.5 last password change in past
+execute = call(
+    "for usr in $(sudo cut -d: -f1 /etc/shadow); do [[ $(sudo chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo \"$usr :$(sudo chage --list $usr | grep '^Last password change' | cut -d: -f2)\"; done").splitlines()
+if not execute:
+    score += 1
+else:
+    from datetime import datetime
+    d = datetime.now()
+    if all(datetime.strptime(e.split(' : ')[1], '%b %d, %Y') < d for e in execute):
+        score += 1
+    del(datetime)
 
 print(str(score) + ' out of ' + str(total_score) + ' are enabled')

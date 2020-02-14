@@ -1,12 +1,12 @@
 # count of total score
 from subprocess import Popen, PIPE
-total_score = 150  # till 5.2.5
+total_score = 174  # till 5.4.1.5
 
 # calling subprocess function
 
 
 def call(execute, pos=0):
-    return Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True).communicate()[pos].decode('utf-8')
+    return Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True, executable='/bin/bash').communicate()[pos].decode('utf-8')
 
 
 # 1.1.1 Disable unused filesystems
@@ -54,3 +54,19 @@ audit_events = ['time-change', 'identity', 'system-locale', 'MAC-policy', 'login
 
 # 5.1.3 -> 5.1.7 permissions on /etc/cron
 etc_cron = ['hourly', 'daily', 'weekly', 'monthly', 'd']
+
+# 5.2.13 weak cyphers
+weak_cyphers = ['3des-cbc', 'aes128-cbc', 'aes192-cbc', 'aes256-cbc', 'arcfour',
+                'arcfour128', 'arcfour256', 'blowfish-cbc', 'cast128-cbc', 'rijndael-cbc@lysator.liu.se']
+
+# 5.2.14 weak MAC algorithms
+weak_mac = ['hmac-md5', 'hmac-md5-96', 'hmac-ripemd160', 'hmac-sha1', 'hmac-sha1-96', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-md5-etm@openssh.com',
+            'hmac-md5-96-etm@openssh.com', 'hmac-ripemd160-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'hmac-sha1-96-etm@openssh.com', 'umac-64-etm@openssh.com', 'umac-128-etm@openssh.com']
+
+# 5.2.15 weak Key Exchange Algorithms
+weak_keys = ['diffie-hellman-group1-sha1',
+             'diffie-hellman-group14-sha1', 'diffie-hellman-group-exchange-sha1']
+
+# 5.3.1 password requirements
+pwd_req = ['minlen=14', 'dcredit=-1',
+           'ucredit=-1', 'ocredit=-1', 'lcredit=-1']
