@@ -25,9 +25,9 @@ def get_recommendations(options):
     # to weed out recommendations based on platform
     if options.platform:
         if options.platform == 'server':
-            platform = [b for b in benchmark if 1 == b[3] or 3 == b[3]]
+            platform = [b for b in benchmark if b[2][0]]
         else:
-            platform = [b for b in benchmark if 2 == b[3] or 3 == b[3]]
+            platform = [b for b in benchmark if b[3][0]]
         if recommendations:
             recommendations = [p for p in platform if p in recommendations]
         else:
@@ -35,7 +35,7 @@ def get_recommendations(options):
 
     # to weed out recommendations based on Profile Level
     if options.level:
-        level = [b for b in benchmark if b[2] == options.level]
+        level = [b for b in benchmark if b[2][1] == options.level or b[3][1] == options.level]
         if recommendations:
             recommendations = [l for l in level if l in recommendations]
         else:
@@ -79,42 +79,20 @@ def get_recommendations(options):
 
 
 # displays the explaination necessary recommendations and exits
-def disp_exp(options):
-
-    if options.dist == 'ind':
-        from modules.benchmarks import benchmark_ind as benchmark
-    elif options.dist == 'cen':
-        from modules.benchmarks import benchmark_cen as benchmark
-    elif options.dist == 'deb':
-        from modules.benchmarks import benchmark_deb as benchmark
-    elif options.dist == 'fed':
-        from modules.benchmarks import benchmark_fed as benchmark
-    elif options.dist == 'red':
-        from modules.benchmarks import benchmark_red as benchmark
-    elif options.dist == 'sus':
-        from modules.benchmarks import benchmark_sus as benchmark
-    elif options.dist == 'ubu':
-        from modules.benchmarks import benchmark_ubu as benchmark
-
-    recommendations = list()
-    include = list()
-    exp = list()
-
-    import re
-
-    for i in options.exp:
-        r = re.compile(i)
-        include.extend(list(filter(r.match, [b[0] for b in benchmark])))
-    exp = [b for b in benchmark if b[0] in include]
-    for b in exp:
-        result = b[0] + '\t' + b[4] + '\t'
-        result += 'Scored\t' if b[1] else 'Not Scored\t'
-        result += 'Level 1\t' if b[2] == 1 else 'Level 2\t'
-        if b[3] == 1:
-            result += 'Server'
-        elif b[3] == 2:
-            result += 'Workstation'
+def disp_exp(recommendations):
+    for b in recommendations:
+        if b[2][0]:
+            profileServer = 'Level ' + str(b[2][1]) + ' Server'
         else:
-            result += 'Both S and W'
-        print(result)
+            profileServer = 'N/A'
+        if b[3][0]:
+            profileWorkstation = 'Level ' + str(b[3][1]) + ' Workstation'
+        else:
+            profileWorkstation = 'N/A'
+        print('{:<7}|{:<10}|{:<14}|{:<19}|'.format(b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4])
+    
     exit()
+
+
+if __name__ == "__main__":
+    exit('Please run ./SeBAz -h')

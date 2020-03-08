@@ -3,7 +3,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 # initializing argument parser
 parser = ArgumentParser(prog='SeBAz',
                         description='Perform CIS Benchmark scoring on your Linux System',
-                        usage='# python3 %(prog)s.py [optional arguments]',
+                        usage='# ./%(prog)s [optional arguments]',
                         epilog='Enjoy Hardening your System!',
                         formatter_class=RawTextHelpFormatter)
 
@@ -103,7 +103,7 @@ parser.add_argument('--dist', type=str, choices=['cen', 'deb', 'fed', 'red', 'su
 
 # Control explainer
 parser.add_argument('--exp', type=str, nargs='+',
-                    action='store', help='Explain a particular control based on recommendation number'
+                    action='store', help='Explain a control based on recommendation number'
                     '\nExample:'
                     '\n --exp 4.1')
 
@@ -114,3 +114,7 @@ parser.add_argument('-v', '--verbose',
 # Print version
 parser.add_argument('-V', '--version', action='version',
                     help='Display tool version and exit')
+
+
+if __name__ == "__main__":
+    exit('Please run ./SeBAz -h')
