@@ -25,9 +25,9 @@ def get_recommendations(options):
     # to weed out recommendations based on platform
     if options.platform:
         if options.platform == 'server':
-            platform = [b for b in benchmark if b[2][0]]
+            platform = [b for b in benchmark if b[2]]
         else:
-            platform = [b for b in benchmark if b[3][0]]
+            platform = [b for b in benchmark if b[3]]
         if recommendations:
             recommendations = [p for p in platform if p in recommendations]
         else:
@@ -35,7 +35,7 @@ def get_recommendations(options):
 
     # to weed out recommendations based on Profile Level
     if options.level:
-        level = [b for b in benchmark if b[2][1] == options.level or b[3][1] == options.level]
+        level = [b for b in benchmark if b[2] == options.level or b[3] == options.level]
         if recommendations:
             recommendations = [l for l in level if l in recommendations]
         else:
@@ -81,12 +81,12 @@ def get_recommendations(options):
 # displays the explaination necessary recommendations and exits
 def disp_exp(recommendations):
     for b in recommendations:
-        if b[2][0]:
-            profileServer = 'Level ' + str(b[2][1]) + ' Server'
+        if b[2]:
+            profileServer = 'Level ' + str(b[2]) + ' Server'
         else:
             profileServer = 'N/A'
-        if b[3][0]:
-            profileWorkstation = 'Level ' + str(b[3][1]) + ' Workstation'
+        if b[3]:
+            profileWorkstation = 'Level ' + str(b[3]) + ' Workstation'
         else:
             profileWorkstation = 'N/A'
         print('{:<7}|{:<10}|{:<14}|{:<19}|'.format(b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4])

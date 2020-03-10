@@ -252,7 +252,7 @@ def makeIndex(pdf, SeBAz_contents):
         # message
         pdf.drawString(A4[0]*5/20, line, SeBAz_contents[row][1])
         pdf.linkRect(SeBAz_contents[row][0], SeBAz_contents[row][0], (A4[0]*5/20, A4[1] -
-                                                                      line - 2, A4[0]*5/20 + 6.7*len(SeBAz_contents[row][1]), A4[1] - line + 8))
+                                                                      line - 2, A4[0]*5/20 + 6.7*len(SeBAz_contents[row][1]), A4[1] - line + 8), relative=1)
         # result
         pdf.drawCentredString(A4[0]*17/20, line, SeBAz_contents[row][2])
         line += 20
@@ -288,16 +288,16 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         pdf.drawString(
             startColumn, A4[1]/8 + 50, 'Scored' if recommendations[i][1] else 'Not Scored')
         # Server Level
-        if recommendations[i][2][0]:
+        if recommendations[i][2]:
             profileServer = 'Level ' + \
-                str(recommendations[i][2][1]) + ' Server'
+                str(recommendations[i][2]) + ' Server'
         else:
             profileServer = 'N/A'
         pdf.drawString(startColumn, A4[1]/8 + 70, profileServer)
         # Workstation Level
-        if recommendations[i][3][0]:
+        if recommendations[i][3]:
             profileWorkstation = 'Level ' + \
-                str(recommendations[i][3][1]) + ' Workstation'
+                str(recommendations[i][3]) + ' Workstation'
         else:
             profileWorkstation = 'N/A'
         pdf.drawString(startColumn, A4[1]/8 + 90, profileWorkstation)
