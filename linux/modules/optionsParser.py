@@ -35,7 +35,8 @@ def get_recommendations(options):
 
     # to weed out recommendations based on Profile Level
     if options.level:
-        level = [b for b in benchmark if b[2] == options.level or b[3] == options.level]
+        level = [b for b in benchmark if b[2] ==
+                 options.level or b[3] == options.level]
         if recommendations:
             recommendations = [l for l in level if l in recommendations]
         else:
@@ -67,7 +68,8 @@ def get_recommendations(options):
             r = re.compile(e)
             exclude.extend(list(filter(r.match, [b[0] for b in benchmark])))
         if recommendations:
-            recommendations = [r for r in recommendations if r[0] not in exclude]
+            recommendations = [
+                r for r in recommendations if r[0] not in exclude]
         else:
             recommendations = [b for b in benchmark if b[0] not in exclude]
 
@@ -89,8 +91,9 @@ def disp_exp(recommendations):
             profileWorkstation = 'Level ' + str(b[3]) + ' Workstation'
         else:
             profileWorkstation = 'N/A'
-        print('{:<7}|{:<10}|{:<14}|{:<19}|'.format(b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4])
-    
+        print('{:<7}|{:<10}|{:<14}|{:<19}|'.format(
+            b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4])
+
     exit()
 
 

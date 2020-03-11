@@ -1,7 +1,7 @@
 from modules.argumentParser import parser
 from modules.optionsParser import get_recommendations, disp_exp
 from modules.benchmarks import test
-from modules.reportGenerator import createPDF
+from modules.reportGenerator import createPDF, generatePDF
 from modules.termcolor.termcolor import cprint
 from os import system, path
 from csv import writer
@@ -27,6 +27,8 @@ recommendations = get_recommendations(options)
 if options.exp != None:
     disp_exp(recommendations)
 
+if options.report != None:
+    generatePDF(options.report)
 
 system('sudo clear')
 cprint('Welcome to SeBAz', attrs=['bold'])
@@ -37,7 +39,7 @@ print('\nGive me a moment to calculate the prerequisites...\n')
 file_path = path.dirname(path.abspath(__file__)) + '/' + \
     str(options.org) + '-' + str(options.unique) + '.SeBAz.csv'
 with open(file_path, 'w', newline='') as csvfile:
-    csvwriter = writer(csvfile)
+    csvwriter = writer(csvfile, dialect='excel')
     csvwriter.writerow(['Recommendation Number', 'Message',
                         'Result', 'Explanation', 'Time'])
 
@@ -80,11 +82,12 @@ if (end // 60 % 60) < 1:
     duration += '{:.3f} seconds'.format(end)
 else:
     duration += '{:.0f}'.format(end // 60 % 60) + \
-        ' minutes and {:.3f} seconds'.format(end % 60)
+        ' minute ' if (end // 60 % 60) == 1 else ' minutes ' + 'and {:.3f} seconds'.format(end % 60)
 gmtime = time.gmtime()
 local = time.localtime()
 with open(file_path, 'a', newline='') as csvfile:
-    csvwriter = writer(csvfile)
+    csvwriter = writer(csvfile, dialect='excel')
+    csvwriter.writerows(['\n', ['---<DO NOT MODIFY ANYTHING BELOW>---'], '\n'])
     csvwriter.writerow(['Start Time (UTC): ' + str(gmtime.tm_year) + '-' + str(gmtime.tm_mon) + '-' + str(gmtime.tm_mday) +
                         ' ' + str(gmtime.tm_hour) + ':' + str(gmtime.tm_min) + ':' + str(gmtime.tm_sec)])
     csvwriter.writerow(['Start Time (Local): ' + str(local.tm_year) + '-' + str(local.tm_mon) + '-' +
@@ -102,8 +105,10 @@ with open(file_path, 'a', newline='') as csvfile:
     csvwriter.writerow([result.splitlines()[0]])
     csvwriter.writerow([result.splitlines()[1]])
 
+print('\nGenerating ' + str(options.org) + '-' + str(options.unique) + '.pdf')
 # Generating PDF
-createPDF(file_path, recommendations)
+createPDF(file_path)
+print('Done.')
 
 # printing test results
 print(duration)

@@ -1,8 +1,7 @@
-from os import path, walk
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from csv import reader
-from modules.printProgressAuto.progressBar import printProgressBar
+from modules.optionsParser import get_recommendations
 
 
 colorPass = [76, 175, 80]
@@ -13,24 +12,24 @@ colorSecondary = [103, 58, 183]
 
 
 def setInfo(pdf, SeBAz_contents):
-    pdf.setAuthor(SeBAz_contents[-12][1])
+    pdf.setAuthor(SeBAz_contents[-13][1])
     pdf.setCreator('SeBAz')
     pdf.setProducer('SeBAz')
     subject = 'Result of'
-    if SeBAz_contents[-8][1] == 'ind':
+    if SeBAz_contents[-9][1] == 'ind':
         subject += ' Independent '
-    if SeBAz_contents[-8][1] == 'cen':
-        subject += ' CentOS '
-    if SeBAz_contents[-8][1] == 'deb':
-        subject += ' Debian '
-    if SeBAz_contents[-8][1] == 'fed':
-        subject += ' Fedora '
-    if SeBAz_contents[-8][1] == 'red':
-        subject += ' RedHat '
-    if SeBAz_contents[-8][1] == 'sus':
-        subject += ' SUSE '
-    if SeBAz_contents[-8][1] == 'ubu':
-        subject += ' Ubuntu '
+    if SeBAz_contents[-9][1] == 'cen':
+        subject += ' CentOS 8 '
+    if SeBAz_contents[-9][1] == 'deb':
+        subject += ' Debian 9 '
+    if SeBAz_contents[-9][1] == 'fed':
+        subject += ' Fedora 28 Family '
+    if SeBAz_contents[-9][1] == 'red':
+        subject += ' RedHat Enterprise 8 '
+    if SeBAz_contents[-9][1] == 'sus':
+        subject += ' SUSE Enterprise 12 '
+    if SeBAz_contents[-9][1] == 'ubu':
+        subject += ' Ubuntu 18.04 LTS '
     subject += 'Linux CIS Benchmarking'
     pdf.setSubject(subject)
     return subject
@@ -58,8 +57,8 @@ def makeTitle(pdf, SeBAz_contents, subject):
     pdf.setFillColorRGB(
         colorSecondary[0]/256, colorSecondary[1]/256, colorSecondary[2]/256)
     pdf.setFont('Helvetica-BoldOblique', 30)
-    pdf.drawCentredString(A4[0]*4/10, A4[1]*18/50, SeBAz_contents[-11][1])
-    pdf.drawCentredString(A4[0]*6/10, A4[1]*20/50, SeBAz_contents[-10][1])
+    pdf.drawCentredString(A4[0]*4/10, A4[1]*18/50, SeBAz_contents[-12][1])
+    pdf.drawCentredString(A4[0]*6/10, A4[1]*20/50, SeBAz_contents[-11][1])
     pdf.setFont('Helvetica-Bold', 15)
     # subject
     pdf.drawCentredString(A4[0]/2, A4[1]*25/50, subject)
@@ -68,7 +67,7 @@ def makeTitle(pdf, SeBAz_contents, subject):
     # score
     pdf.drawCentredString(A4[0]/2, A4[1]*29/50, SeBAz_contents[-1][0])
     # auditor name
-    pdf.drawRightString(A4[0]*10/12, A4[1]*40/50, SeBAz_contents[-12][1])
+    pdf.drawRightString(A4[0]*10/12, A4[1]*40/50, SeBAz_contents[-13][1])
     pdf.restoreState()
     pdf.showPage()
 
@@ -78,15 +77,15 @@ def makeResult(pdf, SeBAz_contents):
     pdf.saveState()
     pdf.setFont('Helvetica-Bold', 15)
     # start time utc
-    pdf.drawString(3*(A4[0]/10)/2, A4[1]/8, SeBAz_contents[-20][0])
+    pdf.drawString(3*(A4[0]/10)/2, A4[1]*3/8, SeBAz_contents[-21][0])
     # start time local
-    pdf.drawString(3*(A4[0]/10)/2, A4[1]/8 + 30, SeBAz_contents[-19][0])
+    pdf.drawString(3*(A4[0]/10)/2, A4[1]*3/8 + 30, SeBAz_contents[-20][0])
     # finish time utc
-    pdf.drawString(3*(A4[0]/10)/2, A4[1]/8 + 60, SeBAz_contents[-5][0])
+    pdf.drawString(3*(A4[0]/10)/2, A4[1]*3/8 + 60, SeBAz_contents[-5][0])
     # finish time local
-    pdf.drawString(3*(A4[0]/10)/2, A4[1]/8 + 90, SeBAz_contents[-4][0])
+    pdf.drawString(3*(A4[0]/10)/2, A4[1]*3/8 + 90, SeBAz_contents[-4][0])
     # test and time
-    pdf.drawString(3*(A4[0]/10)/2, A4[1]/8 + 120, SeBAz_contents[-3][0])
+    pdf.drawString(3*(A4[0]/10)/2, A4[1]*3/8 + 120, SeBAz_contents[-3][0])
     pdf.restoreState()
     pdf.showPage()
 
@@ -102,16 +101,16 @@ def makeIntro(pdf, SeBAz_contents):
     pdf.setFont('Courier-Bold', 11)
     index = 0
     line = 15
-    for i in range(0, len(SeBAz_contents[-9][1])):
-        if SeBAz_contents[-9][1][i] == '[' or SeBAz_contents[-9][1][i] == ',' or SeBAz_contents[-9][1][i] == ']' or SeBAz_contents[-9][1][i] == "'" or SeBAz_contents[-9][1][i] == '\\':
+    for i in range(0, len(SeBAz_contents[-10][1])):
+        if SeBAz_contents[-10][1][i] == '[' or SeBAz_contents[-10][1][i] == ',' or SeBAz_contents[-10][1][i] == ']' or SeBAz_contents[-10][1][i] == "'" or SeBAz_contents[-10][1][i] == '\\':
             continue
-        elif SeBAz_contents[-9][1][i-1] == '\\' and SeBAz_contents[-9][1][i] == 'n':
+        elif SeBAz_contents[-10][1][i-1] == '\\' and SeBAz_contents[-10][1][i] == 'n':
             ''
         else:
             pdf.drawString(startColumn + 6.7*index, startRow +
-                           line, SeBAz_contents[-9][1][i])
+                           line, SeBAz_contents[-10][1][i])
             index += 1
-        if index == 60 or SeBAz_contents[-9][1][i-1] == '\\' and SeBAz_contents[-9][1][i] == 'n':
+        if index == 60 or SeBAz_contents[-10][1][i-1] == '\\' and SeBAz_contents[-10][1][i] == 'n':
             line += 10
             index = 0
         if line > 605:
@@ -137,14 +136,14 @@ def makeIntro(pdf, SeBAz_contents):
     index = 0
     line += 15
     pdf.setFont('Courier-Bold', 11)
-    for i in range(0, len(SeBAz_contents[-17][1])):
-        if SeBAz_contents[-17][1][i] == '[' or SeBAz_contents[-17][1][i] == ']' or SeBAz_contents[-17][1][i] == "'":
+    for i in range(0, len(SeBAz_contents[-18][1])):
+        if SeBAz_contents[-18][1][i] == '[' or SeBAz_contents[-18][1][i] == ']' or SeBAz_contents[-18][1][i] == "'":
             continue
-        elif SeBAz_contents[-17][1][i] != ',':
+        elif SeBAz_contents[-18][1][i] != ',':
             pdf.drawString(startColumn + 6.7*index, startRow +
-                           line, SeBAz_contents[-17][1][i])
+                           line, SeBAz_contents[-18][1][i])
             index += 1
-        if index == 60 or SeBAz_contents[-17][1][i] == ',':
+        if index == 60 or SeBAz_contents[-18][1][i] == ',':
             line += 10
             index = -1
         if line > 605:
@@ -170,14 +169,14 @@ def makeIntro(pdf, SeBAz_contents):
     index = 0
     line += 15
     pdf.setFont('Courier-Bold', 11)
-    for i in range(0, len(SeBAz_contents[-16][1])):
-        if SeBAz_contents[-16][1][i] == '[' or SeBAz_contents[-16][1][i] == ']' or SeBAz_contents[-16][1][i] == "'":
+    for i in range(0, len(SeBAz_contents[-17][1])):
+        if SeBAz_contents[-17][1][i] == '[' or SeBAz_contents[-17][1][i] == ']' or SeBAz_contents[-17][1][i] == "'":
             continue
-        elif SeBAz_contents[-16][1][i] != ',':
+        elif SeBAz_contents[-17][1][i] != ',':
             pdf.drawString(startColumn + 6.7*index, startRow +
-                           line, SeBAz_contents[-16][1][i])
+                           line, SeBAz_contents[-17][1][i])
             index += 1
-        if index == 60 or SeBAz_contents[-16][1][i] == ',':
+        if index == 60 or SeBAz_contents[-17][1][i] == ',':
             line += 10
             index = -1
         if line > 605:
@@ -200,25 +199,32 @@ def makeIntro(pdf, SeBAz_contents):
         line += 30
     pdf.setFont('Helvetica-Bold', 15)
     pdf.drawString(startColumn, startRow + line, 'Scoring Level')
-    pdf.drawString(startColumn + 140, startRow + line,
-                   'Both Level 1 and 2' if not SeBAz_contents[-15][1] else SeBAz_contents[-15][1][0])
+    pdf.setFont('Helvetica-Bold', 12)
+    pdf.drawString(startColumn + 180, startRow + line,
+                   'Both Level 1 and 2' if not SeBAz_contents[-16][1] else SeBAz_contents[-16][1][0])
     # Score
     line += 30
+    pdf.setFont('Helvetica-Bold', 15)
     pdf.drawString(startColumn, startRow + line, 'Score')
-    if not SeBAz_contents[-14][1]:
-        pdf.drawString(startColumn + 140, startRow +
+    pdf.setFont('Helvetica-Bold', 12)
+    if not SeBAz_contents[-15][1]:
+        pdf.drawString(startColumn + 180, startRow +
                        line, 'Both Scored and Not Scored')
     else:
-        pdf.drawString(startColumn + 140, startRow + line,
-                       'Scored' if SeBAz_contents[-14][1][0] else 'Not Scored')
+        pdf.drawString(startColumn + 180, startRow + line,
+                       'Scored' if SeBAz_contents[-15][1][0] else 'Not Scored')
     # Platform
     line += 30
+    pdf.setFont('Helvetica-Bold', 15)
     pdf.drawString(startColumn, startRow + line, 'Platform')
-    pdf.drawString(startColumn + 140, startRow + line, SeBAz_contents[-13][1])
+    pdf.setFont('Helvetica-Bold', 12)
+    pdf.drawString(startColumn + 180, startRow + line, SeBAz_contents[-14][1])
     # Verbosity
     line += 30
+    pdf.setFont('Helvetica-Bold', 15)
     pdf.drawString(startColumn, startRow + line, 'Verbosity')
-    pdf.drawString(startColumn + 140, startRow + line, SeBAz_contents[-6][1])
+    pdf.setFont('Helvetica-Bold', 12)
+    pdf.drawString(startColumn + 180, startRow + line, SeBAz_contents[-6][1])
     pdf.restoreState()
     pdf.showPage()
 
@@ -236,7 +242,7 @@ def makeIndex(pdf, SeBAz_contents):
     # Index
     pdf.setFont('Courier-Bold', 11)
     line = 150
-    for row in range(1, len(SeBAz_contents)-20):
+    for row in range(1, len(SeBAz_contents)-24):
         pdf.saveState()
         if SeBAz_contents[row][2] == 'PASS':
             pdf.setFillColorRGB(
@@ -269,7 +275,7 @@ def makeIndex(pdf, SeBAz_contents):
 
 
 def makeBody(pdf, SeBAz_contents, recommendations):
-    for i, row in enumerate(range(1, len(SeBAz_contents)-20)):
+    for i, row in enumerate(range(1, len(SeBAz_contents)-24)):
         drawBorder(pdf)
         pdf.bookmarkPage(SeBAz_contents[row][0])
         pdf.saveState()
@@ -338,7 +344,7 @@ def makeBody(pdf, SeBAz_contents, recommendations):
             pdf.setFillColorRGB(
                 colorPass[0]/256, colorPass[1]/256, colorPass[2]/256)
         pdf.drawString(7*(A4[0]/10)/2, startRow,
-                       SeBAz_contents[row][4] + ' ms')
+                       SeBAz_contents[row][4] + ' seconds')
         pdf.restoreState()
         pdf.saveState()
         # Explaination
@@ -374,17 +380,38 @@ def makeBody(pdf, SeBAz_contents, recommendations):
 
 def makeOutline(pdf, SeBAz_contents):
     pdf.addOutlineEntry('Index', 'Index')
-    for row in range(1, len(SeBAz_contents)-20):
+    for row in range(1, len(SeBAz_contents)-24):
         pdf.addOutlineEntry(
             SeBAz_contents[row][0] + ' - ' + SeBAz_contents[row][1], SeBAz_contents[row][0])
 
 
-def createPDF(SeBAz, recommendations):
+def createPDF(SeBAz):
     SeBAz_contents = list()
-    with open(SeBAz, 'r') as f:
-        csv_reader = reader(f)
+    with open(SeBAz, 'r', newline='') as f:
+        csv_reader = reader(f, dialect='excel')
         for row in csv_reader:
             SeBAz_contents.append(row)
+
+    class Options:
+        def __init__(self, dist, score, platform, level, include, exclude):
+            self.dist = dist
+            self.score = score
+            self.platform = platform
+            self.level = level
+            self.include = include
+            self.exclude = exclude
+
+    from re import sub
+    option = Options(
+        dist = SeBAz_contents[-9][1],
+        score = None if not SeBAz_contents[-15][1] else int(SeBAz_contents[-15][1][0]),
+        platform = None if not SeBAz_contents[-14][1] else SeBAz_contents[-14][1],
+        level = None if not SeBAz_contents[-16][1] else int(SeBAz_contents[-16][1][0]),
+        include = None if not SeBAz_contents[-18][1] else sub(r'\[|\]| |\'', '', SeBAz_contents[-18][1]).split(','),
+        exclude = None if not SeBAz_contents[-17][1] else sub(r'\[|\]| |\'', '', SeBAz_contents[-17][1]).split(',')
+    )
+    recommendations = get_recommendations(option)
+
     pdf = canvas.Canvas(SeBAz.split('.SeBAz.csv')[
                         0] + '.pdf', pagesize=A4, bottomup=0, pageCompression=1)
     pdf.setTitle(SeBAz.split('.SeBAz.csv')[0])
@@ -395,6 +422,15 @@ def createPDF(SeBAz, recommendations):
     makeIndex(pdf, SeBAz_contents)
     makeBody(pdf, SeBAz_contents, recommendations)
     pdf.save()
+
+
+def generatePDF(SeBAz):
+    from glob import glob
+    for c in glob(SeBAz + '.SeBAz.csv'):
+        print('\nGenerating ' + c.split('.SeBAz.csv')[0] + '.pdf')
+        createPDF(c)
+        print('Done.\n')
+    exit()
 
 
 if __name__ == "__main__":

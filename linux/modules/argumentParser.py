@@ -101,6 +101,15 @@ parser.add_argument('--dist', type=str, choices=['cen', 'deb', 'fed', 'red', 'su
                     '\nExample:'
                     '\n --dist deb')
 
+# Report Generation
+parser.add_argument('-r', '--report', type=str, metavar='SeBAz.csv',
+                    action='store', help='Generate report from a SeBAz.csv file'
+                    '\nUse to generate a org-sysid.pdf report'
+                    '\nFrom modified SeBAz.csv(s)'
+                    '\nExample:'
+                    '\n -r "None-None" [.SeBAz.csv will be taken implicitly]'
+                    '\n -r "~/csvs/*" [all *.SeBAz.csv in folder called "csvs"]')
+
 # Control explainer
 parser.add_argument('--exp', type=str, nargs='+',
                     action='store', help='Explain a control based on recommendation number'

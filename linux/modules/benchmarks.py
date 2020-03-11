@@ -39,6 +39,9 @@ benchmark_ind = [
     ['1.1.15', 1, 1, 1, 'Ensure nodev option set on /dev/shm partition'],
     ['1.1.16', 1, 1, 1, 'Ensure nosuid option set on /dev/shm partition'],
     ['1.1.17', 1, 1, 1, 'Ensure noexec option set on /dev/shm partition'],
+    ['1.1.18', 0, 1, 1, 'Ensure nodev option set on removable media partitions'],
+    ['1.1.19', 0, 1, 1, 'Ensure nosuid option set on removable media partitions'],
+    ['1.1.20', 0, 1, 1, 'Ensure noexec option set on removable media partitions'],
     ['1.1.21', 1, 1, 1, 'Ensure sticky bit is set on all world-writable directories'],
     ['1.1.22', 1, 1, 2, 'Disable Automounting'],
     ['1.1.23', 1, 1, 2, 'Disable USB Storage'],
@@ -201,15 +204,15 @@ benchmark_ubu = [
 ]
 
 
-def print_success(r, x): return cprint(
-    '{:<8}   {:<50}\t{:>4}'.format(r, x, 'PASS'), 'green', attrs=['bold'])
+def print_success(r, x, p): cprint(
+    '{:<8}   {:<50}\t{:>4}'.format(r, x, p), 'green', attrs=['bold'])
 
 
-def print_fail(r, x): return cprint('{:<8}   {:<50}\t{:>4}'.format(
-    r, x, 'FAIL'), 'red', attrs=['bold'])
+def print_fail(r, x, p): cprint('{:<8}   {:<50}\t{:>4}'.format(
+    r, x, p), 'red', attrs=['bold'])
 
 
-def print_neutral(r, x, p): return cprint('{:<8}   {:<50}\t{:>4}'.format(
+def print_neutral(r, x, p): cprint('{:<8}   {:<50}\t{:>4}'.format(
     r, x, p), 'grey', attrs=['bold'])
 
 
@@ -242,6 +245,10 @@ def _1_1_1_1_ind():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -257,6 +264,10 @@ def _1_1_1_2_ind():
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('freevxfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v freevxfs did not return anything')
     return return_value
 
 
@@ -272,6 +283,10 @@ def _1_1_1_3_ind():
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('jffs2 could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v jffs2 did not return anything')
     return return_value
 
 
@@ -287,6 +302,10 @@ def _1_1_1_4_ind():
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfs did not return anything')
     return return_value
 
 
@@ -302,6 +321,10 @@ def _1_1_1_5_ind():
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfsplus could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfsplus did not return anything')
     return return_value
 
 
@@ -317,6 +340,10 @@ def _1_1_1_6_ind():
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('squashfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v squashfs did not return anything')
     return return_value
 
 
@@ -332,6 +359,10 @@ def _1_1_1_7_ind():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -353,6 +384,10 @@ def _1_1_1_8_ind():
             return_value.append('vfat can be mounted')
             return_value.append('CHEK')
             return_value.append(success)
+        else:
+            return_value.append('vfat could not be checked')
+            return_value.append('CHEK')
+            return_value.append('modprobe -n -v usb-storage did not return anything')
     return return_value
 
 
@@ -455,9 +490,14 @@ def _1_1_8_ind():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -470,9 +510,14 @@ def _1_1_9_ind():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -485,9 +530,14 @@ def _1_1_10_ind():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -542,9 +592,14 @@ def _1_1_14_ind():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -557,9 +612,14 @@ def _1_1_15_ind():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -572,9 +632,14 @@ def _1_1_16_ind():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -587,13 +652,87 @@ def _1_1_17_ind():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_ind():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_ind():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_ind():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -642,6 +781,10 @@ def _1_1_23_ind():
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('usb-storage could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v usb-storage did not return anything')
     return return_value
 
 
@@ -666,6 +809,10 @@ def _1_1_1_1_cen():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -687,6 +834,10 @@ def _1_1_1_2_cen():
             return_value.append('vfat can be mounted')
             return_value.append('CHEK')
             return_value.append(success)
+        else:
+            return_value.append('vfat could not be checked')
+            return_value.append('CHEK')
+            return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -702,6 +853,10 @@ def _1_1_1_3_cen():
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('squashfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v squashfs did not return anything')
     return return_value
 
 
@@ -717,6 +872,10 @@ def _1_1_1_4_cen():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -819,9 +978,14 @@ def _1_1_8_cen():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -834,9 +998,14 @@ def _1_1_9_cen():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -849,9 +1018,14 @@ def _1_1_10_cen():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -906,9 +1080,14 @@ def _1_1_14_cen():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -921,9 +1100,14 @@ def _1_1_15_cen():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -936,9 +1120,14 @@ def _1_1_16_cen():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -951,13 +1140,87 @@ def _1_1_17_cen():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_cen():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_cen():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_cen():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -1030,6 +1293,10 @@ def _1_1_1_1_deb():
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('freevxfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v freevxfs did not return anything')
     return return_value
 
 
@@ -1045,6 +1312,10 @@ def _1_1_1_2_deb():
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('jffs2 could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v jffs2 did not return anything')
     return return_value
 
 
@@ -1060,6 +1331,10 @@ def _1_1_1_3_deb():
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfs did not return anything')
     return return_value
 
 
@@ -1075,6 +1350,10 @@ def _1_1_1_4_deb():
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfsplus could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfsplus did not return anything')
     return return_value
 
 
@@ -1177,9 +1456,14 @@ def _1_1_8_deb():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1192,9 +1476,14 @@ def _1_1_9_deb():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1207,9 +1496,14 @@ def _1_1_10_deb():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1264,9 +1558,14 @@ def _1_1_14_deb():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -1279,9 +1578,14 @@ def _1_1_15_deb():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -1294,9 +1598,14 @@ def _1_1_16_deb():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -1309,13 +1618,87 @@ def _1_1_17_deb():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_deb():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_deb():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_deb():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -1373,6 +1756,10 @@ def _1_1_1_1_fed():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -1394,6 +1781,10 @@ def _1_1_1_2_fed():
             return_value.append('vfat can be mounted')
             return_value.append('CHEK')
             return_value.append(success)
+        else:
+            return_value.append('vfat could not be checked')
+            return_value.append('CHEK')
+            return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -1409,6 +1800,10 @@ def _1_1_1_3_fed():
         return_value.append('squshfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('squashfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v squashfs did not return anything')
     return return_value
 
 
@@ -1424,6 +1819,10 @@ def _1_1_1_4_fed():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -1526,9 +1925,14 @@ def _1_1_8_fed():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1541,9 +1945,14 @@ def _1_1_9_fed():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1556,9 +1965,14 @@ def _1_1_10_fed():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1613,9 +2027,14 @@ def _1_1_14_fed():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -1628,9 +2047,14 @@ def _1_1_15_fed():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -1643,9 +2067,14 @@ def _1_1_16_fed():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -1658,13 +2087,87 @@ def _1_1_17_fed():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_fed():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_fed():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_fed():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -1737,6 +2240,10 @@ def _1_1_1_1_red():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -1758,6 +2265,10 @@ def _1_1_1_2_red():
             return_value.append('vfat can be mounted')
             return_value.append('CHEK')
             return_value.append(success)
+        else:
+            return_value.append('vfat could not be checked')
+            return_value.append('CHEK')
+            return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -1773,6 +2284,10 @@ def _1_1_1_3_red():
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('vfat could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -1788,6 +2303,10 @@ def _1_1_1_4_red():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -1890,9 +2409,14 @@ def _1_1_8_red():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1905,9 +2429,14 @@ def _1_1_9_red():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1920,9 +2449,10 @@ def _1_1_10_red():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -1977,9 +2507,14 @@ def _1_1_14_red():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -1992,9 +2527,14 @@ def _1_1_15_red():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2007,9 +2547,14 @@ def _1_1_16_red():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2022,13 +2567,87 @@ def _1_1_17_red():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_red():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_red():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_red():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -2101,6 +2720,10 @@ def _1_1_1_1_sus():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -2116,6 +2739,10 @@ def _1_1_1_2_sus():
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('freevxfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v freevxfs did not return anything')
     return return_value
 
 
@@ -2131,6 +2758,10 @@ def _1_1_1_3_sus():
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('jffs2 could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v jffs2 did not return anything')
     return return_value
 
 
@@ -2146,6 +2777,10 @@ def _1_1_1_4_sus():
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfs did not return anything')
     return return_value
 
 
@@ -2161,6 +2796,10 @@ def _1_1_1_5_sus():
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfsplus could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfsplus did not return anything')
     return return_value
 
 
@@ -2176,6 +2815,10 @@ def _1_1_1_6_sus():
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('squashfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v squashfs did not return anything')
     return return_value
 
 
@@ -2191,6 +2834,10 @@ def _1_1_1_7_sus():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -2206,6 +2853,10 @@ def _1_1_1_8_sus():
         return_value.append('vfat can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('vfat could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -2307,9 +2958,14 @@ def _1_1_8_sus():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2322,9 +2978,14 @@ def _1_1_9_sus():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2337,9 +2998,14 @@ def _1_1_10_sus():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2394,9 +3060,14 @@ def _1_1_14_sus():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -2409,9 +3080,14 @@ def _1_1_15_sus():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2424,9 +3100,14 @@ def _1_1_16_sus():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2439,13 +3120,87 @@ def _1_1_17_sus():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_sus():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_sus():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_sus():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -2503,6 +3258,10 @@ def _1_1_1_1_ubu():
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('cramfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v cramfs did not return anything')
     return return_value
 
 
@@ -2518,6 +3277,10 @@ def _1_1_1_2_ubu():
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('freevxfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v freevxfs did not return anything')
     return return_value
 
 
@@ -2533,6 +3296,10 @@ def _1_1_1_3_ubu():
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('jffs2 could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v jffs2 did not return anything')
     return return_value
 
 
@@ -2548,6 +3315,10 @@ def _1_1_1_4_ubu():
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfs did not return anything')
     return return_value
 
 
@@ -2563,6 +3334,10 @@ def _1_1_1_5_ubu():
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('hfsplus could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v hfsplus did not return anything')
     return return_value
 
 
@@ -2578,6 +3353,10 @@ def _1_1_1_6_ubu():
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('squashfs could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v squashfs did not return anything')
     return return_value
 
 
@@ -2593,6 +3372,10 @@ def _1_1_1_7_ubu():
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        return_value.append('udf could not be checked')
+        return_value.append('CHEK')
+        return_value.append('modprobe -n -v udf did not return anything')
     return return_value
 
 
@@ -2614,6 +3397,10 @@ def _1_1_1_8_ubu():
             return_value.append('vfat can be mounted')
             return_value.append('CHEK')
             return_value.append(success)
+        else:
+            return_value.append('vfat could not be checked')
+            return_value.append('CHEK')
+            return_value.append('modprobe -n -v vfat did not return anything')
     return return_value
 
 
@@ -2716,9 +3503,14 @@ def _1_1_8_ubu():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nodev")
-        return_value.append('nodev is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2731,9 +3523,14 @@ def _1_1_9_ubu():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2746,9 +3543,14 @@ def _1_1_10_ubu():
     success, error = check('mount | grep /var/tmp')
     if success:
         success, error = check("mount | grep -E '\s/var/tmp\s' | grep -v noexec")
-        return_value.append('noexec is set on /var/tmp')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /var/tmp')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/var/tmp\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /var/tmp')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /var/tmp')
         return_value.append('FAIL')
@@ -2803,9 +3605,14 @@ def _1_1_14_ubu():
     success, error = check('mount | grep /home')
     if success:
         success, error = check("mount | grep -E '\s/home\s' | grep -v nodev")
-        return_value.append('nodev is set on /home')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /home')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/home\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /home')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /home')
         return_value.append('FAIL')
@@ -2818,9 +3625,14 @@ def _1_1_15_ubu():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nodev")
-        return_value.append('nodev is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        if not success and not error:
+            return_value.append('nodev is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nodev did not return anything")
+        else:
+            return_value.append('nodev is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('nodev is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2833,9 +3645,14 @@ def _1_1_16_ubu():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v nosuid")
-        return_value.append('nosuid is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        if not success and not error:
+            return_value.append('nosuid is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v nosuid did not return anything")
+        else:
+            return_value.append('nosuid is not set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append(success if success else error)
     else:
         return_value.append('nosuid is not set on /dev/shm')
         return_value.append('FAIL')
@@ -2848,13 +3665,87 @@ def _1_1_17_ubu():
     success, error = check('mount | grep /dev/shm')
     if success:
         success, error = check("mount | grep -E '\s/dev/shm\s' | grep -v noexec")
-        return_value.append('noexec is set on /dev/shm')
-        return_value.append('PASS')
-        return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        if not success and not error:
+            return_value.append('noexec is set on /dev/shm')
+            return_value.append('PASS')
+            return_value.append("mount | grep -E '\s/dev/shm\s' | grep -v noexec did not return anything")
+        else:
+            return_value.append('noexec is not set on /dev/shm')
+            return_value.append('FAIL')
+            return_value.append(success if success else error)
     else:
         return_value.append('noexec is not set on /dev/shm')
         return_value.append('FAIL')
         return_value.append("/dev/shm does not exist. noexec cannot be set on a partition that does not exist")
+    return return_value
+
+
+def _1_1_18_ubu():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nodev = [drive for drive in success.splitlines() if 'nodev' not in drive]
+        if not nodev:
+            return_value.append('nodev is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nodev is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nodev" set\n'
+            for n in nodev:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_19_ubu():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        nosuid = [drive for drive in success.splitlines() if 'nosuid' not in drive]
+        if not nosuid:
+            return_value.append('nosuid is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('nosuid is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "nosuid" set\n'
+            for n in nosuid:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
+    return return_value
+
+
+def _1_1_20_ubu():
+    return_value = list()
+    success, error = check("mount | grep -e '/media/'")
+    if success:
+        noexec = [drive for drive in success.splitlines() if 'noexec' not in drive]
+        if not noexec:
+            return_value.append('noexec is set on all removable drives')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('noexec is not set on all removable drives')
+            return_value.append('FAIL')
+            result = 'The following removable storage media does not have "noexec" set\n'
+            for n in noexec:
+                result += n + '\n'
+            return_value.append(result)
+    else:
+        return_value.append('No mounted media found')
+        return_value.append('PASS')
+        return_value.append("mount | grep -e '/media/' returned no result")
     return return_value
 
 
@@ -2925,8 +3816,8 @@ def test(r, file_path, dist, i=None, l=None):
     # if verbose output is needed | else print progressBar
     if i == None and l == None:
         if r[1]:
-            print_success(r[0], return_value[0]) if return_score == 2 else print_fail(
-                r[0], return_value[0])
+            print_success(r[0], return_value[0], return_value[1]) if return_score == 2 else print_fail(
+                r[0], return_value[0], return_value[1])
         else:
             print_neutral(r[0], return_value[
                           0], return_value[1])
@@ -2939,7 +3830,7 @@ def test(r, file_path, dist, i=None, l=None):
     return_value.insert(0, r[0])
     return_value.append(str(time() - start))
     with open(file_path, 'a', newline='') as csvfile:
-        csvwriter = writer(csvfile)
+        csvwriter = writer(csvfile, dialect='excel')
         csvwriter.writerow(return_value)
 
     # returning score
