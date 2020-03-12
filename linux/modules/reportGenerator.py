@@ -279,12 +279,16 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         drawBorder(pdf)
         pdf.bookmarkPage(SeBAz_contents[row][0])
         pdf.saveState()
-        # Recommendation number and explaination
+        # Recommendation number and explanation
         pdf.setFillColorRGB(
             colorSecondary[0]/256, colorSecondary[1]/256, colorSecondary[2]/256)
         pdf.setFont('Helvetica-BoldOblique', 15)
         pdf.drawCentredString(A4[0]/2, A4[1]/8, SeBAz_contents[row][0])
-        pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
+        if len(recommendations[i][4]) < 60:
+            pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
+        else:
+            pdf.setFont('Helvetica-BoldOblique', 12)
+            pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
         pdf.restoreState()
         pdf.saveState()
         startColumn = 3*(A4[0]/10)/2
@@ -347,10 +351,10 @@ def makeBody(pdf, SeBAz_contents, recommendations):
                        SeBAz_contents[row][4] + ' seconds')
         pdf.restoreState()
         pdf.saveState()
-        # Explaination
+        # explanation
         pdf.setFont('Helvetica-Bold', 13)
         startRow += 30
-        pdf.drawString(startColumn, startRow, 'Explaination:')
+        pdf.drawString(startColumn, startRow, 'Explanation:')
         pdf.setFont('Courier-Bold', 11)
         index = 0
         startRow += 20
@@ -403,12 +407,16 @@ def createPDF(SeBAz):
 
     from re import sub
     option = Options(
-        dist = SeBAz_contents[-9][1],
-        score = None if not SeBAz_contents[-15][1] else int(SeBAz_contents[-15][1][0]),
-        platform = None if not SeBAz_contents[-14][1] else SeBAz_contents[-14][1],
-        level = None if not SeBAz_contents[-16][1] else int(SeBAz_contents[-16][1][0]),
-        include = None if not SeBAz_contents[-18][1] else sub(r'\[|\]| |\'', '', SeBAz_contents[-18][1]).split(','),
-        exclude = None if not SeBAz_contents[-17][1] else sub(r'\[|\]| |\'', '', SeBAz_contents[-17][1]).split(',')
+        dist=SeBAz_contents[-9][1],
+        score=None if not SeBAz_contents[-15][1] else int(
+            SeBAz_contents[-15][1][0]),
+        platform=None if not SeBAz_contents[-14][1] else SeBAz_contents[-14][1],
+        level=None if not SeBAz_contents[-16][1] else int(
+            SeBAz_contents[-16][1][0]),
+        include=None if not SeBAz_contents[-18][1] else sub(
+            r'\[|\]| |\'', '', SeBAz_contents[-18][1]).split(','),
+        exclude=None if not SeBAz_contents[-17][1] else sub(
+            r'\[|\]| |\'', '', SeBAz_contents[-17][1]).split(',')
     )
     recommendations = get_recommendations(option)
 

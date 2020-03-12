@@ -80,7 +80,7 @@ def get_recommendations(options):
     return recommendations
 
 
-# displays the explaination necessary recommendations and exits
+# displays the explanation necessary recommendations and exits
 def disp_exp(recommendations):
     for b in recommendations:
         if b[2]:

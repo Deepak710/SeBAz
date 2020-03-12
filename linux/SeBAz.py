@@ -5,6 +5,7 @@ from modules.reportGenerator import createPDF, generatePDF
 from modules.termcolor.termcolor import cprint
 from os import system, path
 from csv import writer
+from colorama import init
 import time
 
 
@@ -31,6 +32,7 @@ if options.report != None:
     generatePDF(options.report)
 
 system('sudo clear')
+init()
 cprint('Welcome to SeBAz', attrs=['bold'])
 print('\nGive me a moment to calculate the prerequisites...\n')
 
@@ -82,7 +84,8 @@ if (end // 60 % 60) < 1:
     duration += '{:.3f} seconds'.format(end)
 else:
     duration += '{:.0f}'.format(end // 60 % 60) + \
-        ' minute ' if (end // 60 % 60) == 1 else ' minutes ' + 'and {:.3f} seconds'.format(end % 60)
+        ' minute ' if (end // 60 % 60) == 1 else ' minutes ' + \
+        'and {:.3f} seconds'.format(end % 60)
 gmtime = time.gmtime()
 local = time.localtime()
 with open(file_path, 'a', newline='') as csvfile:
