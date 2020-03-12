@@ -286,8 +286,11 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         pdf.drawCentredString(A4[0]/2, A4[1]/8, SeBAz_contents[row][0])
         if len(recommendations[i][4]) < 60:
             pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
+        elif len(recommendations[i][4]) < 85:
+            pdf.setFont('Helvetica-BoldOblique', 10)
+            pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
         else:
-            pdf.setFont('Helvetica-BoldOblique', 12)
+            pdf.setFont('Helvetica-BoldOblique', 10)
             pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
         pdf.restoreState()
         pdf.saveState()
@@ -338,10 +341,10 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         startRow += 30
         pdf.drawString(startColumn, startRow, 'Time Taken')
         pdf.setFont('Times-Roman', 12)
-        if float(SeBAz_contents[row][4]) > 0.01:
+        if float(SeBAz_contents[row][4]) > 1.0:
             pdf.setFillColorRGB(
                 colorFail[0]/256, colorFail[1]/256, colorFail[2]/256)
-        elif float(SeBAz_contents[row][4]) > 0.005:
+        elif float(SeBAz_contents[row][4]) > 0.01:
             pdf.setFillColorRGB(
                 colorWarn[0]/256, colorWarn[1]/256, colorWarn[2]/256)
         else:

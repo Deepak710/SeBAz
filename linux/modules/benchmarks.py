@@ -45,27 +45,54 @@ benchmark_ind = [
     ['1.1.21', 1, 1, 1, 'Ensure sticky bit is set on all world-writable directories'],
     ['1.1.22', 1, 1, 2, 'Disable Automounting'],
     ['1.1.23', 1, 1, 2, 'Disable USB Storage'],
-    ['1.2.1', 0, 1, 1, 'Ensure package manager repositories are configured (distro specific)'],
+    ['1.2.1', 0, 1, 1,
+        'Ensure package manager repositories are configured (distro specific)'],
     ['1.2.2', 0, 1, 1, 'Ensure GPG keys are configured (distro specific)'],
     ['1.3.1', 1, 1, 1, 'Ensure AIDE is installed (distro specific)'],
     ['1.3.2', 1, 1, 1, 'Ensure filesystem integrity is regularly checked'],
-    ['1.4.1', 1, 1, 1, 'Ensure permissions on bootloader config are configured (bootloader specific)'],
-    ['1.4.2', 1, 1, 1, 'Ensure bootloader password is set (bootloader specific)'],
+    ['1.4.1', 1, 1, 1,
+        'Ensure permissions on bootloader config are configured (bootloader specific)'],
+    ['1.4.2', 1, 1, 1,
+        'Ensure bootloader password is set (bootloader specific)'],
     ['1.4.3', 1, 1, 1, 'Ensure authentication required for single user mode'],
-    ['1.4.4', 0, 1, 1, 'Ensure interactive boot is not enabled (distro specific)'],
+    ['1.4.4', 0, 1, 1,
+        'Ensure interactive boot is not enabled (distro specific)'],
     ['1.5.1', 1, 1, 1, 'Ensure core dumps are restricted'],
     ['1.5.2', 1, 1, 1, 'Ensure XD/NX support is enabled'],
-    ['1.5.3', 1, 1, 1, 'Ensure address space layout randomization (ASLR) is enabled'],
+    ['1.5.3', 1, 1, 1,
+        'Ensure address space layout randomization (ASLR) is enabled'],
     ['1.5.4', 1, 1, 1, 'Ensure prelink is disabled (distro specific)'],
-    ['1.6.1.1', 1, 2, 2, 'Ensure SELinux or AppArmor are installed (distro specific)'],
+    ['1.6.1.1', 1, 2, 2,
+        'Ensure SELinux or AppArmor are installed (distro specific)'],
     ['1.6.2.1', 1, 2, 2, 'Ensure SELinux is not disabled in bootloader configuration'],
     ['1.6.2.2', 1, 2, 2, 'Ensure the SELinux state is enforcing'],
     ['1.6.2.3', 1, 2, 2, 'Ensure SELinux policy is configured'],
-    ['1.6.2.4', 1, 2, 0, 'Ensure SETroubleshoot is not installed (distro specific)'],
-    ['1.6.2.5', 1, 2, 2, 'Ensure the MCS Translation Service (mcstrans) is not installed (distro specific)'],
+    ['1.6.2.4', 1, 2, 0,
+        'Ensure SETroubleshoot is not installed (distro specific)'],
+    ['1.6.2.5', 1, 2, 2,
+        'Ensure the MCS Translation Service (mcstrans) is not installed (distro specific)'],
     ['1.6.2.6', 1, 2, 2, 'Ensure no unconfined daemons exist'],
     ['1.6.3.1', 1, 2, 2, 'Ensure AppArmor is not disabled in bootloader configuration'],
     ['1.6.3.2', 1, 2, 2, 'Ensure all AppArmor Profiles are enforcing'],
+    ['1.7.1.1', 1, 1, 1, 'Ensure message of the day is configured properly'],
+    ['1.7.1.2', 1, 1, 1, 'Ensure local login warning banner is configured properly'],
+    ['1.7.1.3', 1, 1, 1, 'Ensure remote login warning banner is configured properly'],
+    ['1.7.1.4', 1, 1, 1, 'Ensure permissions on /etc/motd are configured'],
+    ['1.7.1.5', 1, 1, 1, 'Ensure permissions on /etc/issue are configured'],
+    ['1.7.1.6', 1, 1, 1, 'Ensure permissions on /etc/issue.net are configured'],
+    ['1.7.2', 1, 1, 1, 'Ensure GDM login banner is configured'],
+    ['1.8', 0, 1, 1,
+        'Ensure updates, patches, and additional security software are installed (distro specific)'],
+    ['2.1.1', 1, 1, 1, 'Ensure chargen services are not enabled'],
+    ['2.1.2', 1, 1, 1, 'Ensure daytime services are not enabled'],
+    ['2.1.3', 1, 1, 1, 'Ensure discard services are not enabled'],
+    ['2.1.4', 1, 1, 1, 'Ensure echo services are not enabled'],
+    ['2.1.5', 1, 1, 1, 'Ensure time services are not enabled'],
+    ['2.1.6', 1, 1, 1, 'Ensure rsh server is not enabled'],
+    ['2.1.7', 1, 1, 1, 'Ensure talk server is not enabled'],
+    ['2.1.8', 1, 1, 1, 'Ensure telnet server is not enabled'],
+    ['2.1.9', 1, 1, 1, 'Ensure tftp server is not enabled'],
+    ['2.1.10', 1, 1, 1, 'Ensure xinetd is not enabled'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -853,11 +880,13 @@ def _1_2_1_ind():
     if success:
         return_value.append('check configuration of repos')
         return_value.append('CHEK')
-        return_value.append('The following are the configuration of the package manager repositories\n' + success)
+        return_value.append(
+            'The following are the configuration of the package manager repositories\n' + success)
     else:
         return_value.append('package configuration not checked')
         return_value.append('CHEK')
-        return_value.append('sudo apt-cache policy did not return anything\n' + error)
+        return_value.append(
+            'sudo apt-cache policy did not return anything\n' + error)
     return return_value
 
 
@@ -872,11 +901,13 @@ def _1_2_2_ind():
     if success:
         return_value.append('check GPG keys source')
         return_value.append('CHEK')
-        return_value.append('The following are the configuration of the GPG keys\n' + success)
+        return_value.append(
+            'The following are the configuration of the GPG keys\n' + success)
     else:
         return_value.append('GPG keys not checked')
         return_value.append('CHEK')
-        return_value.append('sudo apt-key list did not return any keys\n' + error)
+        return_value.append(
+            'sudo apt-key list did not return any keys\n' + error)
     return return_value
 
 
@@ -918,7 +949,8 @@ def _1_3_2_ind():
     else:
         return_value.append('No AIDE cron jobs scheduled')
         return_value.append('FAIL')
-        return_value.append('grep -r aide /etc/cron.* /etc/crontab returned the following\n' + success + '\n' + error)
+        return_value.append(
+            'grep -r aide /etc/cron.* /etc/crontab returned the following\n' + success + '\n' + error)
     return return_value
 
 
@@ -943,7 +975,8 @@ def _1_4_1_ind():
     else:
         return_value.append('grub config not found')
         return_value.append('CHEK')
-        return_value.append('stat /boot/grub*/grub.cfg | grep Access returned\n' + success + '\n' + error)
+        return_value.append(
+            'stat /boot/grub*/grub.cfg | grep Access returned\n' + success + '\n' + error)
     return return_value
 
 
@@ -978,14 +1011,16 @@ def _1_4_3_ind():
     else:
         return_value.append('auth not required for single user mode')
         return_value.append('FAIL')
-        return_value.append('sudo grep ^root:[*\!]: /etc/shadow returned the following\n' + error)
+        return_value.append(
+            'sudo grep ^root:[*\!]: /etc/shadow returned the following\n' + error)
     return return_value
 
 
 # distro specific
 def _1_4_4_ind():
     return_value = list()
-    success, error = check('sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot')
+    success, error = check(
+        'sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot')
     if 'PROMPT_FOR_CONFIRM="no"' in success:
         return_value.append('interactive boot disabled')
         return_value.append('PASS')
@@ -993,7 +1028,8 @@ def _1_4_4_ind():
     else:
         return_value.append('interactive boot not checked')
         return_value.append('CHEK')
-        return_value.append('sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot returned the following\n' + success + '\n' + error)
+        return_value.append(
+            'sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot returned the following\n' + success + '\n' + error)
     return return_value
 
 
@@ -1001,7 +1037,8 @@ def _1_5_1_ind():
     return_value = list()
     result_success = ''
     result_error = ''
-    success, error = check('grep "hard core" /etc/security/limits.conf /etc/security/limits.d/*')
+    success, error = check(
+        'grep "hard core" /etc/security/limits.conf /etc/security/limits.d/*')
     if success:
         result_success += success + '\n'
     else:
@@ -1011,19 +1048,21 @@ def _1_5_1_ind():
         result_success += success + '\n'
     else:
         result_error += error + '\n'
-    success, error = check('grep "fs\.suid_dumpable" /etc/sysctl.conf /etc/sysctl.d/*')
+    success, error = check(
+        'grep "fs\.suid_dumpable" /etc/sysctl.conf /etc/sysctl.d/*')
     if success:
         result_success += success + '\n'
     else:
         result_error += error + '\n'
-    if  len(result_success.splitlines()) == 6:
+    if len(result_success.splitlines()) == 6:
         return_value.append('core dumps are restricted')
         return_value.append('PASS')
         return_value.append(result_success)
     else:
         return_value.append('core dumps not restricted')
         return_value.append('FAIL')
-        return_value.append('Following are configured properly\n' + result_success + '\n' + 'Following are configured improperly\n' + result_error)
+        return_value.append('Following are configured properly\n' + result_success +
+                            '\n' + 'Following are configured improperly\n' + result_error)
     return return_value
 
 
@@ -1036,7 +1075,8 @@ def _1_5_2_ind():
         return_value.append(success)
     else:
         result_error = error
-        success, error = check("[[ -n $(grep noexec[0-9]*=off /proc/cmdline) || -z $(grep -E -i ' (pae|nx) ' /proc/cpuinfo) || -n $(grep '\sNX\s.*\sprotection:\s' /var/log/dmesg | grep -v active) ]] && echo \"NX Protection is not active\"")
+        success, error = check(
+            "[[ -n $(grep noexec[0-9]*=off /proc/cmdline) || -z $(grep -E -i ' (pae|nx) ' /proc/cpuinfo) || -n $(grep '\sNX\s.*\sprotection:\s' /var/log/dmesg | grep -v active) ]] && echo \"NX Protection is not active\"")
         if not success:
             return_value.append('XD/NX support is enabled')
             return_value.append('PASS')
@@ -1057,19 +1097,21 @@ def _1_5_3_ind():
         result_success += success + '\n'
     else:
         result_error += success + '\n' + error + '\n'
-    success, error = check('grep "kernel\.randomize_va_space" /etc/sysctl.conf /etc/sysctl.d/*')
+    success, error = check(
+        'grep "kernel\.randomize_va_space" /etc/sysctl.conf /etc/sysctl.d/*')
     if '2' in success:
         result_success += success + '\n'
     else:
         result_error += success + '\n' + error + '\n'
-    if  len(result_success.splitlines()) == 4:
+    if len(result_success.splitlines()) == 4:
         return_value.append('ASLR enabled')
         return_value.append('PASS')
         return_value.append(result_success)
     else:
         return_value.append('ASLR not enabled')
         return_value.append('FAIL')
-        return_value.append('Following are configured properly\n' + result_success + '\n' + 'Following are configured improperly\n' + result_error)
+        return_value.append('Following are configured properly\n' + result_success +
+                            '\n' + 'Following are configured improperly\n' + result_error)
     return return_value
 
 
@@ -1164,14 +1206,15 @@ def _1_6_2_2_ind():
         result_success += success + '\n'
     else:
         result_error += success + '\n' + error + '\n'
-    if  len(result_success.splitlines()) == 4:
+    if len(result_success.splitlines()) == 4:
         return_value.append('SELinux state is enforcing')
         return_value.append('PASS')
         return_value.append(result_success)
     else:
         return_value.append('SELinux state is not enforcing')
         return_value.append('FAIL')
-        return_value.append('Following are configured properly\n' + result_success + '\n' + 'Following are configured improperly\n' + result_error)
+        return_value.append('Following are configured properly\n' + result_success +
+                            '\n' + 'Following are configured improperly\n' + result_error)
     return return_value
 
 
@@ -1189,14 +1232,15 @@ def _1_6_2_3_ind():
         result_success += success + '\n'
     else:
         result_error += success + '\n' + error + '\n'
-    if  len(result_success.splitlines()) == 4:
+    if len(result_success.splitlines()) == 4:
         return_value.append('SELinux policy is configured')
         return_value.append('PASS')
         return_value.append(result_success)
     else:
         return_value.append('SELinux policy is not configured')
         return_value.append('FAIL')
-        return_value.append('Following are configured properly\n' + result_success + '\n' + 'Following are configured improperly\n' + result_error)
+        return_value.append('Following are configured properly\n' + result_success +
+                            '\n' + 'Following are configured improperly\n' + result_error)
     return return_value
 
 
@@ -1240,11 +1284,13 @@ def _1_6_2_5_ind():
 
 def _1_6_2_6_ind():
     return_value = list()
-    success, error = check("ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }'")
+    success, error = check(
+        "ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }'")
     if not success:
         return_value.append('no unconfined daemons exist')
         return_value.append('PASS')
-        return_value.append("ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }' returned nothing")
+        return_value.append(
+            "ps -eZ | grep -E \"initrc\" | grep -E -v -w \"tr|ps|grep|bash|awk\" | tr ':' ' ' | awk '{ print $NF }' returned nothing")
     else:
         return_value.append('unconfined daemons exist')
         return_value.append('FAIL')
@@ -1287,9 +1333,12 @@ def _1_6_3_2_ind():
     return_value = list()
     success, error = check('sudo apparmor_status')
     if success:
-        loaded_profiles = [p for p in success.splitlines() if 'profiles are loaded.' in p]
-        complain_profiles = [p for p in success.splitlines() if 'profiles are in complain mode.' in p]
-        unconfined_process = [p for p in success.splitlines() if 'processes are unconfined' in p]
+        loaded_profiles = [
+            p for p in success.splitlines() if 'profiles are loaded.' in p]
+        complain_profiles = [p for p in success.splitlines(
+        ) if 'profiles are in complain mode.' in p]
+        unconfined_process = [
+            p for p in success.splitlines() if 'processes are unconfined' in p]
         if loaded_profiles and not loaded_profiles[0].startswith('0'):
             if complain_profiles and complain_profiles[0].startswith('0'):
                 if unconfined_process and unconfined_process[0].startswith('0'):
@@ -1312,6 +1361,407 @@ def _1_6_3_2_ind():
         return_value.append('AppArmor status not found')
         return_value.append('FAIL')
         return_value.append(error)
+    return return_value
+
+
+def _1_7_1_1_ind():
+    return_value = list()
+    success, error = check('cat /etc/motd')
+    if success:
+        result_success = success
+        success, error = check(
+            "grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/motd")
+        if not success:
+            return_value.append('motd is configured properly')
+            return_value.append('PASS')
+            return_value.append(
+                'check if the message of the day matches site policy\n' + result_success)
+        else:
+            return_value.append('motd contains sensitive information')
+            return_value.append('FAIL')
+            return_value.append(
+                'Following OS [or] patch level information were found in the message of the day\n' + result_success)
+    else:
+        return_value.append('no message of the day')
+        return_value.append('CHEK')
+        return_value.append(error)
+    return return_value
+
+
+def _1_7_1_2_ind():
+    return_value = list()
+    success, error = check('cat /etc/issue')
+    if success:
+        result_success = success
+        success, error = check(
+            "grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/issue")
+        if not success:
+            return_value.append('login banner configured properly')
+            return_value.append('PASS')
+            return_value.append(
+                'check if the local login warning banner matches site policy\n' + result_success)
+        else:
+            return_value.append('login banner contains sensitive info')
+            return_value.append('FAIL')
+            return_value.append(
+                'Following OS [or] patch level information were found in the local login banner\n' + result_success)
+    else:
+        return_value.append('no local login warning banner')
+        return_value.append('CHEK')
+        return_value.append(error)
+    return return_value
+
+
+def _1_7_1_3_ind():
+    return_value = list()
+    success, error = check('cat /etc/issue.net')
+    if success:
+        result_success = success
+        success, error = check(
+            "grep -E -i \"(\\v|\\r|\\m|\\s|$(grep '^ID=' /etc/os-release | cut -d= -f2 | sed -e 's/\"//g'))\" /etc/issue.net")
+        if not success:
+            return_value.append('remote login banner configured properly')
+            return_value.append('PASS')
+            return_value.append(
+                'check if the remote login warning banner matches site policy\n' + result_success)
+        else:
+            return_value.append('remote banner contains sensitive info')
+            return_value.append('FAIL')
+            return_value.append(
+                'Following OS [or] patch level information were found in the remote login banner\n' + result_success)
+    else:
+        return_value.append('no remote login warning banner')
+        return_value.append('CHEK')
+        return_value.append(error)
+    return return_value
+
+
+def _1_7_1_4_ind():
+    return_value = list()
+    success, error = check('stat /etc/motd | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/motd permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append('/etc/motd permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/motd invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/motd not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/motd | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _1_7_1_5_ind():
+    return_value = list()
+    success, error = check('stat /etc/issue | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/issue permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append('/etc/issue permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/issue invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/issue not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/issue | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _1_7_1_6_ind():
+    return_value = list()
+    success, error = check('stat /etc/issue.net | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/issue.net permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append('/etc/issue.net permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/issue.net invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/issue.net not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/issue.net | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _1_7_2_ind():
+    return_value = list()
+    success, error = check('cat /etc/gdm3/greeter.dconf-defaults')
+    if success:
+        result_success = success
+        success, error = check(
+            'cat /etc/gdm3/greeter.dconf-defaults | grep banner-message-')
+        if success:
+            if 'banner-message-enable=true' in success and not success.splitlines()[0].startswith('#'):
+                if "banner-message-text='" in success and not success.splitlines()[1].startswith('#'):
+                    return_value.append('GDM login banner is configured')
+                    return_value.append('PASS')
+                    return_value.append(result_success)
+                else:
+                    return_value.append('no GDM login banner message')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('GDM banner message not enabled')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('GDM login banner not configured')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('GDM not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'cat /etc/gdm3/greeter.dconf-defaults did not return anything\n' + error)
+    return return_value
+
+
+def _1_8_ind():
+    return_value = list()
+    success, error = check('sudo apt-get -s upgrade')
+    if success:
+        if '0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.' in success:
+            return_value.append('software installed properly')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('software packages need checking')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('software state not checked')
+        return_value.append('CHEK')
+        return_value.append(
+            'sudo apt-get -s upgrade did not return anything\n' + error)
+    return return_value
+
+
+def _2_1_1_ind():
+    return_value = list()
+    success, error = check('grep -R "^chargen" /etc/inetd.*')
+    if success:
+        return_value.append('chargen services are enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^chargen" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('chargen is not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^chargen" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_2_ind():
+    return_value = list()
+    success, error = check('grep -R "^daytime" /etc/inetd.*')
+    if success:
+        return_value.append('daytime services are enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^daytime" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('daytime is not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^daytime" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_3_ind():
+    return_value = list()
+    success, error = check('grep -R "^discard" /etc/inetd.*')
+    if success:
+        return_value.append('discard services are enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^discard" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('discard is not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^discard" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_4_ind():
+    return_value = list()
+    success, error = check('grep -R "^echo"/etc/inetd.*')
+    if success:
+        return_value.append('echo services are enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^echo" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('echo is not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^echo" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_5_ind():
+    return_value = list()
+    success, error = check('grep -R "^time" /etc/inetd.*')
+    if success:
+        return_value.append('time services are enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^time" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('time is not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^time" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_6_ind():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('grep -R "^shell" /etc/inetd.*')
+    if success:
+        result_success += success + '\n'
+    else:
+        result_error += error + '\n'
+    success, error = check('grep -R "^login" /etc/inetd.*')
+    if success:
+        result_success += success + '\n'
+    else:
+        result_error += error + '\n'
+    success, error = check('grep -R "^exec" /etc/inetd.*')
+    if success:
+        result_success += success + '\n'
+    else:
+        result_error += error + '\n'
+    if len(result_success):
+        return_value.append('rsh services are enabled')
+        return_value.append('FAIL')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('rsh services not present')
+        return_value.append('PASS')
+        return_value.append(result_success + '\n' + result_error)
+    return return_value
+
+
+def _2_1_7_ind():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('grep -R "^talk" /etc/inetd.*')
+    if success:
+        result_success += success + '\n'
+    else:
+        result_error += error + '\n'
+    success, error = check('grep -R "^ntalk" /etc/inetd.*')
+    if success:
+        result_success += success + '\n'
+    else:
+        result_error += error + '\n'
+    if len(result_success):
+        return_value.append('talk server is enabled')
+        return_value.append('FAIL')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('talk server not present')
+        return_value.append('PASS')
+        return_value.append(result_success + '\n' + result_error)
+    return return_value
+
+
+def _2_1_8_ind():
+    return_value = list()
+    success, error = check('grep -R "^telnet" /etc/inetd.*')
+    if success:
+        return_value.append('telnet server is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^telnet" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('telnet server not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^telnet" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_9_ind():
+    return_value = list()
+    success, error = check('grep -R "^tftp" /etc/inetd.*')
+    if success:
+        return_value.append('tftp server is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -R "^tftp" /etc/inetd.* returned the following\n' + success)
+    else:
+        return_value.append('tftp server not present')
+        return_value.append('PASS')
+        return_value.append(
+            'grep -R "^tftp" /etc/inetd.* returned the following\n' + error)
+    return return_value
+
+
+def _2_1_10_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled xinetd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('xinetd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled xinetd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep xinetd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('xinetd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('xinetd is disabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep xinetd returned the following\n' + success)
+            else:
+                return_value.append('xinetd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('xinetd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled xinetd returned the following\n' + error)
     return return_value
 
 
