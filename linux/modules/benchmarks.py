@@ -93,6 +93,36 @@ benchmark_ind = [
     ['2.1.8', 1, 1, 1, 'Ensure telnet server is not enabled'],
     ['2.1.9', 1, 1, 1, 'Ensure tftp server is not enabled'],
     ['2.1.10', 1, 1, 1, 'Ensure xinetd is not enabled'],
+    ['2.2.1.1', 0, 1, 1,
+        'Ensure time synchronization is in use (distro specific)'],
+    ['2.2.1.2', 1, 1, 1, 'Ensure ntp is configured'],
+    ['2.2.1.3', 1, 1, 1, 'Ensure chrony is configured'],
+    ['2.2.1.4', 1, 1, 1, 'Ensure systemd-timesyncd is configured'],
+    ['2.2.2', 1, 1, 0,
+        'Ensure X Window System is not installed (distro specific)'],
+    ['2.2.3', 1, 1, 1, 'Ensure Avahi Server is not enabled'],
+    ['2.2.4', 1, 1, 2, 'Ensure CUPS is not enabled'],
+    ['2.2.5', 1, 1, 1, 'Ensure DHCP Server is not enabled'],
+    ['2.2.6', 1, 1, 1, 'Ensure LDAP server is not enabled'],
+    ['2.2.7', 1, 1, 1, 'Ensure NFS and RPC are not enabled'],
+    ['2.2.8', 1, 1, 1, 'Ensure DNS Server is not enabled'],
+    ['2.2.9', 1, 1, 1, 'Ensure FTP Server is not enabled'],
+    ['2.2.10', 1, 1, 1, 'Ensure HTTP server is not enabled'],
+    ['2.2.11', 1, 1, 1, 'Ensure IMAP and POP3 server is not enabled'],
+    ['2.2.12', 1, 1, 1, 'Ensure Samba is not enabled'],
+    ['2.2.13', 1, 1, 1, 'Ensure HTTP Proxy Server is not enabled'],
+    ['2.2.14', 1, 1, 1, 'Ensure SNMP Server is not enabled'],
+    ['2.2.15', 1, 1, 1, 'Ensure mail transfer agent is configured for local-only mode'],
+    ['2.2.16', 1, 1, 1, 'Ensure rsync service is not enabled'],
+    ['2.2.17', 1, 1, 1, 'Ensure NIS Server is not enabled'],
+    ['2.3.1', 1, 1, 1, 'Ensure NIS Client is not installed (distro specific)'],
+    ['2.3.2', 1, 1, 1, 'Ensure rsh client is not installed (distro specific)'],
+    ['2.3.3', 1, 1, 1,
+        'Ensure talk client is not installed (distro specific)'],
+    ['2.3.4', 1, 1, 1,
+        'Ensure telnet client is not installed (distro specific)'],
+    ['2.3.5', 1, 1, 1,
+        'Ensure telnet client is not installed (distro specific)'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -1749,7 +1779,7 @@ def _2_1_10_ind():
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
                 else:
-                    return_value.append('xinetd is disabled')
+                    return_value.append('xinetd is enabled')
                     return_value.append('FAIL')
                     return_value.append(
                         result_success + '\nls /etc/rc*.d | grep xinetd returned the following\n' + success)
@@ -1762,6 +1792,790 @@ def _2_1_10_ind():
         return_value.append('PASS')
         return_value.append(
             'systemctl is-enabled xinetd returned the following\n' + error)
+    return return_value
+
+
+# distro specific
+def _2_2_1_1_ind():
+    return_value = list()
+    return_value.append('time sync not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s ntp')
+    if 'Status: install ok installed' in success:
+        return_value.append('ntp is installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        result_error = success + '\n' + error
+        success, error = check('sudo dpkg -s chrony')
+        if 'Status: install ok installed' in success:
+            return_value.append('chrony is installed')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('time sync not used')
+            return_value.append('FAIL')
+            return_value.append(result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _2_2_1_2_ind():
+    return_value = list()
+    success, error = check('grep "^restrict" /etc/ntp.conf | grep default')
+    if success:
+        ntp_restrict = ['kod', 'nomodify', 'notrap', 'nopeer', 'noquery']
+        if all(r in s for r in ntp_restrict for s in success.splitlines()):
+            result_success = success
+            success, error = check('grep -E "^(server|pool)" /etc/ntp.conf')
+            if success:
+                result_success += '\nVerify remote server configurations\n' + success
+                success, error = check('grep "^OPTIONS" /etc/sysconfig/ntpd')
+                if 'OPTIONS="-u ntp:ntp"' in success:
+                    return_value.append('ntp is configured')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    result_error = success + '\n' + error
+                    success, error = check(
+                        'grep "^NTPD_OPTIONS" /etc/sysconfig/ntp')
+                    if 'OPTIONS="-u ntp:ntp"' in success:
+                        return_value.append('ntp is configured')
+                        return_value.append('PASS')
+                        return_value.append(result_success + '\n' + success)
+                    else:
+                        result_error += success + '\n' + error
+                        success, error = check(
+                            'grep "RUNASUSER=ntp" /etc/init.d/ntp')
+                        if success:
+                            return_value.append('ntp is configured')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'ntp user configuration not found')
+                            return_value.append('FAIL')
+                            return_value.append('Following were found configured\n' + result_success +
+                                                '\nFollowing are misconfigured\n' + result_error + '\n' + error)
+            else:
+                return_value.append('remote server misconfigured')
+                return_value.append('FAIL')
+                return_value.append(
+                    'grep -E "^(server|pool)" /etc/ntp.conf returned the following\n' + error)
+        else:
+            return_value.append('ntp options misconfigured')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('ntp not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _2_2_1_3_ind():
+    return_value = list()
+    success, error = check('grep -E "^(server|pool)" /etc/chrony.conf')
+    if success:
+        result_success = 'Verify remote server configurations\n' + success
+        success, error = check('ps -ef | grep chronyd')
+        if success:
+            if any(s.startswith('chrony') for s in success):
+                return_value.append('chrony is configured')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('chrony not first field of chronyd')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + success)
+        else:
+            return_value.append('no chrony processes found')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('remote server not configured')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep -E "^(server|pool)" /etc/chrony.conf returned the following\n' + error)
+    return return_value
+
+
+def _2_2_1_4_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled systemd-timesyncd.service')
+    if 'enabled' in success:
+        result_success = success
+        success, error = check('cat /etc/systemd/timesyncd.conf')
+        if success:
+            result_success += '\nEnsure that the NTP servers, NTP FallbackNTP servers, and RootDistanceMaxSec listed are in accordance with local policy\n' + success
+            success, error = check('timedatectl status')
+            if success:
+                return_value.append('system clock is synchronized')
+                return_value.append('PASS')
+                return_value.append(result_success + '\nCheck\n' + success)
+            else:
+                return_value.append('system clock not synchronized')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('no timesync daemon found')
+            return_value.append('FAIL')
+            return_value.append(
+                result_success + '\ncat /etc/systemd/timesyncd.conf returned the following\n' + error)
+    else:
+        return_value.append('systemd-timesyncd is misconfigured')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+# distro specific
+def _2_2_2_ind():
+    return_value = list()
+    return_value.append('X Window System not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -l xserver-xorg*')
+    if success:
+        return_value.append('X Window System installed')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        return_value.append('X Window System not installed')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+def _2_2_3_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled avahi-daemon')
+    if success:
+        if 'enabled' in success:
+            return_value.append('avahi-daemon is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled avahi-daemon returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep avahi-daemon')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('avahi-daemon is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('avahi-daemon is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep avahi-daemon returned the following\n' + success)
+            else:
+                return_value.append('avahi-daemon is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('avahi-daemon not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled avahi-daemon returned the following\n' + error)
+    return return_value
+
+
+def _2_2_4_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled cups')
+    if success:
+        if 'enabled' in success:
+            return_value.append('cups is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled cups returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep cups')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('cups is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('cups is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep cups returned the following\n' + success)
+            else:
+                return_value.append('cups is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('cups not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled cups returned the following\n' + error)
+    return return_value
+
+
+def _2_2_5_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled dhcpd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('dhcpd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled dhcpd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep dhcpd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('dhcpd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('dhcpd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep dhcpd returned the following\n' + success)
+            else:
+                return_value.append('dhcpd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('dhcpd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled dhcpd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_6_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled slapd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('slapd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled slapd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep slapd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('slapd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('slapd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep slapd returned the following\n' + success)
+            else:
+                return_value.append('slapd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('slapd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled slapd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_7_ind():
+    return_value = list()
+    nfs_enabled = True
+    success, error = check('systemctl is-enabled nfs')
+    if success:
+        if 'enabled' in success:
+            return_value.append('nfs is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled nfs returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep nfs')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    nfs_enabled = False
+                    result_success += '\n' + success
+                else:
+                    return_value.append('nfs is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep nfs returned the following\n' + success)
+            else:
+                nfs_enabled = False
+                result_success += '\n' + error
+    else:
+        nfs_enabled = False
+        result_success = 'systemctl is-enabled nfs returned the following\n' + error
+    if not nfs_enabled:
+        success, error = check('systemctl is-enabled rpcbind')
+        if success:
+            if 'enabled' in success:
+                return_value.append('rpcbind is enabled')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\nsystemctl is-enabled rpcbind returned the following\n' + success)
+            else:
+                result_success += '\n' + success
+                success, error = check('ls /etc/rc*.d | grep rpcbind')
+                if success:
+                    if not any(s for s in success if s.startswith('S')):
+                        return_value.append('nfs and rpcbind are disabled')
+                        return_value.append('PASS')
+                        return_value.append(result_success + '\n' + success)
+                    else:
+                        return_value.append('rpcbind is enabled')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            result_success + '\nls /etc/rc*.d | grep rpcbind returned the following\n' + success)
+                else:
+                    return_value.append('nfs and rpcbind are disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('npc and rpcbind are disabled')
+            return_value.append('PASS')
+            return_value.append(
+                result_success + '\nsystemctl is-enabled rpcbind returned the following\n' + error)
+    return return_value
+
+
+def _2_2_8_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled named')
+    if success:
+        if 'enabled' in success:
+            return_value.append('named is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled named returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep named')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('named is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('named is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep named returned the following\n' + success)
+            else:
+                return_value.append('named is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('named not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled named returned the following\n' + error)
+    return return_value
+
+
+def _2_2_9_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled vsftpd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('vsftpd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled vsftpd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep vsftpd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('vsftpd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('vsftpd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep vsftpd returned the following\n' + success)
+            else:
+                return_value.append('vsftpd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('vsftpd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled vsftpd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_10_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled httpd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('httpd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled httpd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep httpd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('httpd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('httpd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep httpd returned the following\n' + success)
+            else:
+                return_value.append('httpd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('httpd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled httpd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_11_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled dovecot')
+    if success:
+        if 'enabled' in success:
+            return_value.append('dovecot is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled dovecot returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep dovecot')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('dovecot is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('dovecot is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep dovecot returned the following\n' + success)
+            else:
+                return_value.append('dovecot is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('dovecot not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled dovecot returned the following\n' + error)
+    return return_value
+
+
+def _2_2_12_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled smb')
+    if success:
+        if 'enabled' in success:
+            return_value.append('smb is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled smb returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep smb')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('smb is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('smb is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep smb returned the following\n' + success)
+            else:
+                return_value.append('smb is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('smb not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled smb returned the following\n' + error)
+    return return_value
+
+
+def _2_2_13_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled squid')
+    if success:
+        if 'enabled' in success:
+            return_value.append('squid is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled squid returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep squid')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('squid is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('squid is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep squid returned the following\n' + success)
+            else:
+                return_value.append('squid is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('squid not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled squid returned the following\n' + error)
+    return return_value
+
+
+def _2_2_14_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled snmpd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('snmpd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled snmpd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep snmpd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('snmpd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('snmpd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep snmpd returned the following\n' + success)
+            else:
+                return_value.append('snmpd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('snmpd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled snmpd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_15_ind():
+    return_value = list()
+    success, error = check(
+        "ss -lntu | grep -E ':25\s' | grep -E -v '\s(127.0.0.1|::1):25\s'")
+    if not success:
+        return_value.append('mta is local only')
+        return_value.append('PASS')
+        return_value.append(
+            "ss -lntu | grep -E ':25\s' | grep -E -v '\s(127.0.0.1|::1):25\s' returned the following\n" + error)
+    else:
+        return_value.append('mta is not local only')
+        return_value.append('FAIL')
+        return_value.append(
+            "ss -lntu | grep -E ':25\s' | grep -E -v '\s(127.0.0.1|::1):25\s' returned the following\n" + success)
+    return return_value
+
+
+def _2_2_16_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled rsyncd')
+    if success:
+        if 'enabled' in success:
+            return_value.append('rsyncd is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled rsyncd returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep rsyncd')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('rsyncd is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('rsyncd is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep rsyncd returned the following\n' + success)
+            else:
+                return_value.append('rsyncd is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('rsyncd not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled rsyncd returned the following\n' + error)
+    return return_value
+
+
+def _2_2_17_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled ypserv')
+    if success:
+        if 'enabled' in success:
+            return_value.append('ypserv is enabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'systemctl is-enabled ypserv returned the following\n' + success)
+        else:
+            result_success = success
+            success, error = check('ls /etc/rc*.d | grep ypserv')
+            if success:
+                if not any(s for s in success if s.startswith('S')):
+                    return_value.append('ypserv is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('ypsesrv is enabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep ypserv returned the following\n' + success)
+            else:
+                return_value.append('ypserv is disabled')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('ypserv not found')
+        return_value.append('PASS')
+        return_value.append(
+            'systemctl is-enabled ypserv returned the following\n' + error)
+    return return_value
+
+
+# distro specific
+def _2_3_1_ind():
+    return_value = list()
+    return_value.append('NIS Client not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s ypbind')
+    if 'Status: install ok installed' in success:
+        return_value.append('X Window System installed')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        return_value.append('NIS Client not installed')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _2_3_2_ind():
+    return_value = list()
+    return_value.append('rsh Client not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s rsh')
+    if 'Status: install ok installed' in success:
+        return_value.append('rsh client installed')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        return_value.append('rsh Client not installed')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _2_3_3_ind():
+    return_value = list()
+    return_value.append('talk Client not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s talk')
+    if 'Status: install ok installed' in success:
+        return_value.append('talk client installed')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        return_value.append('talk Client not installed')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _2_3_4_ind():
+    return_value = list()
+    return_value.append('telnet Client not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s telnet')
+    if 'Status: install ok installed' in success:
+        return_value.append('telnet client installed')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        return_value.append('telnet Client not installed')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _2_3_5_ind():
+    return_value = list()
+    return_value.append('LDAP Client not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s openldap-clients')
+    if error:
+        result_error = error
+        success, error = check('sudo dpkg -s openldap2-client')
+        if error:
+            result_error += '\n' + error
+            success, error = check('sudo dpkg -s ldap-utils')
+            if error:
+                return_value.append('LDAP Client not installed')
+                return_value.append('PASS')
+                return_value.append(result_error + '\n' + error)
+            else:
+                return_value.append('ldap-utils installed')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('openldap2-client installed')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('openldap-clients installed')
+        return_value.append('FAIL')
+        return_value.append(success)
     return return_value
 
 
