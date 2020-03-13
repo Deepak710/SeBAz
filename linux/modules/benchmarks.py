@@ -123,6 +123,26 @@ benchmark_ind = [
         'Ensure telnet client is not installed (distro specific)'],
     ['2.3.5', 1, 1, 1,
         'Ensure telnet client is not installed (distro specific)'],
+    ['3.1.1', 1, 1, 1, 'Ensure IP forwarding is disabled'],
+    ['3.1.2', 1, 1, 1, 'Ensure packet redirect sending is disabled'],
+    ['3.2.1', 1, 1, 1, 'Ensure source routed packets are not accepted'],
+    ['3.2.2', 1, 1, 1, 'Ensure ICMP redirects are not accepted'],
+    ['3.2.3', 1, 1, 1, 'Ensure secure ICMP redirects are not accepted'],
+    ['3.2.4', 1, 1, 1, 'Ensure suspicious packets are logged'],
+    ['3.2.5', 1, 1, 1, 'Ensure broadcast ICMP requests are ignored'],
+    ['3.2.6', 1, 1, 1, 'Ensure bogus ICMP responses are ignored'],
+    ['3.2.7', 1, 1, 1, 'Ensure Reverse Path Filtering is enabled'],
+    ['3.2.8', 1, 1, 1, 'Ensure TCP SYN Cookies is enabled'],
+    ['3.2.9', 1, 1, 1, 'Ensure IPv6 router advertisements are not accepted'],
+    ['3.3.1', 0, 1, 1, 'Ensure TCP Wrappers is installed (distro specific)'],
+    ['3.3.2', 0, 1, 1, 'Ensure /etc/hosts.allow is configured'],
+    ['3.3.3', 0, 1, 1, 'Ensure /etc/hosts.deny is configured'],
+    ['3.3.4', 1, 1, 1, 'Ensure permissions on /etc/hosts.allow are configured'],
+    ['3.3.5', 1, 1, 1, 'Ensure permissions on /etc/hosts.deny are configured'],
+    ['3.4.1', 1, 2, 2, 'Ensure DCCP is disabled'],
+    ['3.4.2', 1, 2, 2, 'Ensure SCTP is disabled'],
+    ['3.4.3', 1, 2, 2, 'Ensure RDS is disabled'],
+    ['3.4.4', 1, 2, 2, 'Ensure TIPC is disabled'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -314,133 +334,210 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_ind():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_2_ind():
     return_value = list()
     success, error = check('modprobe -n -v freevxfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep freevxfs')[0]:
-            return_value.append('freevxfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('freevxfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v freevxfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep freevxfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('freevxfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('freevxfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('freevxfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_ind():
     return_value = list()
     success, error = check('modprobe -n -v jffs2')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep jffs2')[0]:
-            return_value.append('jffs2 cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('jffs2 could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v jffs2 did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep jffs2')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('jffs2 cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('jffs2 is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('jffs2 mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_ind():
     return_value = list()
     success, error = check('modprobe -n -v hfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfs')[0]:
-            return_value.append('hfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_5_ind():
     return_value = list()
     success, error = check('modprobe -n -v hfsplus')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfsplus')[0]:
-            return_value.append('hfsplus cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfsplus could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfsplus did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfsplus')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfsplus cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfsplus is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfsplus mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_6_ind():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('squashfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v squashfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_7_ind():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -453,20 +550,30 @@ def _1_1_1_8_ind():
         return_value.append(success)
     else:
         success, error = check('modprobe -n -v vfat')
-        if 'install /bin/true' in success or 'not found in directory' in error:
-            if not check('lsmod | grep vfat')[0]:
-                return_value.append('vfat cannot be mounted')
-                return_value.append('PASS')
-                return_value.append(success if success else error)
-        elif 'insmod' in success:
+        if 'insmod' in success:
             return_value.append('vfat can be mounted')
-            return_value.append('CHEK')
+            return_value.append('FAIL')
             return_value.append(success)
         else:
-            return_value.append('vfat could not be checked')
-            return_value.append('CHEK')
-            return_value.append(
-                'modprobe -n -v usb-storage did not return anything')
+            result_success = success
+            result_error = error
+            success, error = check('lsmod | grep vfat')
+            if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+                if not success:
+                    return_value.append('vfat cannot be mounted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success if result_success else result_error)
+                else:
+                    return_value.append('vfat is mounted')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success if result_success else result_error + '\n' + success)
+            else:
+                return_value.append('vfat mount status undetermined')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -865,7 +972,7 @@ def _1_1_22_ind():
     success, error = check('systemctl is-enabled autofs | grep enabled')
     if error:
         return_value.append('automounting could not be checked')
-        return_value.append('CHEK')
+        return_value.append('PASS')
         return_value.append(error)
     else:
         if 'enabled' in success:
@@ -882,20 +989,30 @@ def _1_1_22_ind():
 def _1_1_23_ind():
     return_value = list()
     success, error = check('modprobe -n -v usb-storage')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep usb-storage')[0]:
-            return_value.append('usb-storage cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('usb-storage could not be checked')
-        return_value.append('CHEK')
-        return_value.append(
-            'modprobe -n -v usb-storage did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep usb-storage')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('usb-storage cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('usb-storage is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('usb-storage mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -2579,6 +2696,690 @@ def _2_3_5_ind():
     return return_value
 
 
+def _3_1_1_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.ip_forward')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.ip_forward" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check('sysctl net.ipv6.conf.all.forwarding')
+            if success.endswith('0'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv6\.conf\.all\.forwarding" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv6 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv6):
+                    return_value.append('IP forwarding disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv6 forwards packets')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv6 forwards packets')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 forwards packets')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 forwards packets')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_1_2_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.send_redirects')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check(
+                'sysctl net.ipv4.conf.default.send_redirects')
+            if success.endswith('0'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv4):
+                    return_value.append('packet redirect sending is disabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 redirects default packets')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 redirects default packets')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 redirects all packets')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 redirects all packets')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_1_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.accept_source_route')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check(
+                'sysctl net.ipv4.conf.default.accept_source_route')
+            if success.endswith('0'):
+                result_success += success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv4):
+                    result_success += success + '\n'
+                    success, error = check(
+                        'sysctl net.ipv6.conf.all.accept_source_route')
+                    if success.endswith('0'):
+                        result_success = success + '\n'
+                        success, error = check(
+                            'grep "net\.ipv6\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
+                        ipv6 = [s.split(':')[1] for s in success.splitlines()]
+                        if all(s.endswith('0') for s in ipv6):
+                            result_success += success + '\n'
+                            success, error = check(
+                                'sysctl net.ipv6.conf.default.accept_source_route')
+                            if success.endswith('0'):
+                                result_success += success + '\n'
+                                success, error = check(
+                                    'grep "net\.ipv6\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
+                                ipv6 = [s.split(':')[1]
+                                        for s in success.splitlines()]
+                                if all(s.endswith('0') for s in ipv6):
+                                    return_value.append(
+                                        'source routed packets are not accepted')
+                                    return_value.append('PASS')
+                                    return_value.append(
+                                        result_success + success)
+                                else:
+                                    return_value.append(
+                                        'ipv6 accepts default source packets')
+                                    return_value.append('PASS')
+                                    return_value.append(
+                                        result_success + success)
+                            else:
+                                return_value.append(
+                                    'ipv6 accepts default source packets')
+                                return_value.append('FAIL')
+                                return_value.append(result_success + success)
+                        else:
+                            return_value.append(
+                                'ipv6 accepts all source packets')
+                            return_value.append('FAIL')
+                            return_value.append(result_success + success)
+                    else:
+                        return_value.append('ipv6 accepts all source packets')
+                        return_value.append('FAIL')
+                        return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 accepts default source packets')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 accepts default source packets')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 accepts all source packets')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 accepts all source packets')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_2_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.accept_redirects')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check(
+                'sysctl net.ipv4.conf.default.accept_redirects')
+            if success.endswith('0'):
+                result_success += success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv4):
+                    result_success += success + '\n'
+                    success, error = check(
+                        'sysctl net.ipv6.conf.all.accept_redirects')
+                    if success.endswith('0'):
+                        result_success = success + '\n'
+                        success, error = check(
+                            'grep "net\.ipv6\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+                        ipv6 = [s.split(':')[1] for s in success.splitlines()]
+                        if all(s.endswith('0') for s in ipv6):
+                            result_success += success + '\n'
+                            success, error = check(
+                                'sysctl net.ipv6.conf.default.accept_redirects')
+                            if success.endswith('0'):
+                                result_success += success + '\n'
+                                success, error = check(
+                                    'grep "net\.ipv6\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+                                ipv6 = [s.split(':')[1]
+                                        for s in success.splitlines()]
+                                if all(s.endswith('0') for s in ipv6):
+                                    return_value.append(
+                                        'ICMP redirects not accepted')
+                                    return_value.append('PASS')
+                                    return_value.append(
+                                        result_success + success)
+                                else:
+                                    return_value.append(
+                                        'ipv6 accepts default redirects')
+                                    return_value.append('PASS')
+                                    return_value.append(
+                                        result_success + success)
+                            else:
+                                return_value.append(
+                                    'ipv6 accepts default redirects')
+                                return_value.append('FAIL')
+                                return_value.append(result_success + success)
+                        else:
+                            return_value.append('ipv6 accepts all redirects')
+                            return_value.append('FAIL')
+                            return_value.append(result_success + success)
+                    else:
+                        return_value.append('ipv6 accepts all redirects')
+                        return_value.append('FAIL')
+                        return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 accepts default redirects')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 accepts default redirects')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 accepts all redirects')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 accepts all redirects')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_3_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.secure_redirects')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check(
+                'sysctl net.ipv4.conf.default.secure_redirects')
+            if success.endswith('0'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv4):
+                    return_value.append('secure ICMP redirects not accepted')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 redirects default secure ICMP')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 redirects default secure ICMP')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 redirects all secure ICMP')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 redirects all secure ICMP')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_4_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.log_martians')
+    if success.endswith('1'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('1') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check('sysctl net.ipv4.conf.default.log_martians')
+            if success.endswith('1'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('1') for s in ipv4):
+                    return_value.append('suspicious packets are logged')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 default packets not logged')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 default packets not logged')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 all packets not logged')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 all packets not logged')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_5_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.icmp_echo_ignore_broadcasts')
+    if success.endswith('1'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.icmp_echo_ignore_broadcasts" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('1') for s in ipv4):
+            return_value.append('broadcast ICMP requests ignored')
+            return_value.append('PASS')
+            return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 broadcasts not ignored')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 broadcasts not ignored')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_6_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.icmp_ignore_bogus_error_responses')
+    if success.endswith('1'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net.ipv4.icmp_ignore_bogus_error_responses" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('1') for s in ipv4):
+            return_value.append('bogus ICMP responses ignored')
+            return_value.append('PASS')
+            return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 bogus responses not ignored')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 bogus responses not ignored')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_7_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.conf.all.rp_filter')
+    if success.endswith('1'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.conf\.all\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('1') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check('sysctl net.ipv4.conf.default.rp_filter')
+            if success.endswith('1'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv4\.conf\.default\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('1') for s in ipv4):
+                    return_value.append('Reverse Path Filtering enabled')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv4 default rp filtering disabled')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv4 default rp filtering disabled')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 all rp filtering disabled')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 all rp filtering disabled')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_8_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv4.tcp_syncookies')
+    if success.endswith('1'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv4\.tcp_syncookies" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('1') for s in ipv4):
+            return_value.append('TCP SYN Cookies enabled')
+            return_value.append('PASS')
+            return_value.append(result_success + success)
+        else:
+            return_value.append('ipv4 tcp syncookies disabled')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv4 tcp syncookies disabled')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_2_9_ind():
+    return_value = list()
+    success, error = check('sysctl net.ipv6.conf.all.accept_ra')
+    if success.endswith('0'):
+        result_success = success + '\n'
+        success, error = check(
+            'grep "net\.ipv6\.conf\.all\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*')
+        ipv4 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') for s in ipv4):
+            result_success += success + '\n'
+            success, error = check('sysctl net.ipv6.conf.default.accept_ra')
+            if success.endswith('0'):
+                result_success = success + '\n'
+                success, error = check(
+                    'grep "net\.ipv6\.conf\.default\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*')
+                ipv4 = [s.split(':')[1] for s in success.splitlines()]
+                if all(s.endswith('0') for s in ipv4):
+                    return_value.append('IPv6 router advert not accepted')
+                    return_value.append('PASS')
+                    return_value.append(result_success + success)
+                else:
+                    return_value.append('ipv6 default ra accepted')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + success)
+            else:
+                return_value.append('ipv6 default ra accepted')
+                return_value.append('FAIL')
+                return_value.append(result_success + success)
+        else:
+            return_value.append('ipv6 all ra accepted')
+            return_value.append('FAIL')
+            return_value.append(result_success + success)
+    else:
+        return_value.append('ipv6 all ra accepted')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+# distro specific
+def _3_3_1_ind():
+    return_value = list()
+    return_value.append('TCP Wrappers not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s tcpd')
+    if 'Status: install ok installed' in success:
+        return_value.append('talk client installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('TCP Wrappers not installed')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_3_2_ind():
+    return_value = list()
+    success, error = check('cat /etc/hosts.allow')
+    if not all(s.startswith('#') or not s for s in success.splitlines()):
+        return_value.append('/etc/hosts.allow configured')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('/etc/hosts.allow not configured')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_3_3_ind():
+    return_value = list()
+    success, error = check('cat /etc/hosts.deny')
+    if 'ALL: ALL' in success:
+        return_value.append('/etc/hosts.deny configured')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('/etc/hosts.deny not configured')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _3_3_4_ind():
+    return_value = list()
+    success, error = check('stat /etc/hosts.allow | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/hosts.allow permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/hosts.allow permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/hosts.allow invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/hosts.allow not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/hosts.allow | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _3_3_5_ind():
+    return_value = list()
+    success, error = check('stat /etc/hosts.deny | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/hosts.deny permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append('/etc/hosts.deny permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/hosts.deny invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/hosts.deny not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/hosts.deny | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _3_4_1_ind():
+    return_value = list()
+    success, error = check('modprobe -n -v dccp')
+    if 'insmod' in success:
+        return_value.append('dccp can be mounted')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep dccp')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('dccp cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('dccp is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('dccp mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _3_4_2_ind():
+    return_value = list()
+    success, error = check('modprobe -n -v sctp')
+    if 'insmod' in success:
+        return_value.append('sctp can be mounted')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep sctp')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('sctp cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('sctp is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('sctp mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _3_4_3_ind():
+    return_value = list()
+    success, error = check('modprobe -n -v rds')
+    if 'insmod' in success:
+        return_value.append('rds can be mounted')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep rds')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('rds cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('rds is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('rds mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _3_4_4_ind():
+    return_value = list()
+    success, error = check('modprobe -n -v tipc')
+    if 'insmod' in success:
+        return_value.append('tipc can be mounted')
+        return_value.append('FAIL')
+        return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep tipc')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('tipc cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('tipc is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('tipc mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
 """
 Definitions of Functions that perform CentOS checks against benchmarks
 return_value[0] = result
@@ -2591,19 +3392,30 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_cen():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -2616,57 +3428,90 @@ def _1_1_1_2_cen():
         return_value.append(success)
     else:
         success, error = check('modprobe -n -v vfat')
-        if 'install /bin/true' in success or 'not found in directory' in error:
-            if not check('lsmod | grep vfat')[0]:
-                return_value.append('vfat cannot be mounted')
-                return_value.append('PASS')
-                return_value.append(success if success else error)
-        elif 'insmod' in success:
+        if 'insmod' in success:
             return_value.append('vfat can be mounted')
-            return_value.append('CHEK')
+            return_value.append('FAIL')
             return_value.append(success)
         else:
-            return_value.append('vfat could not be checked')
-            return_value.append('CHEK')
-            return_value.append('modprobe -n -v vfat did not return anything')
+            result_success = success
+            result_error = error
+            success, error = check('lsmod | grep vfat')
+            if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+                if not success:
+                    return_value.append('vfat cannot be mounted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success if result_success else result_error)
+                else:
+                    return_value.append('vfat is mounted')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success if result_success else result_error + '\n' + success)
+            else:
+                return_value.append('vfat mount status undetermined')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_cen():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('squashfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v squashfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_cen():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -3082,15 +3927,30 @@ def _1_1_22_cen():
 def _1_1_23_cen():
     return_value = list()
     success, error = check('modprobe -n -v usb-storage')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep usb-storage')[0]:
-            return_value.append('usb-storage cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep usb-storage')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('usb-storage cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('usb-storage is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('usb-storage mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -3106,76 +3966,120 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_deb():
     return_value = list()
     success, error = check('modprobe -n -v freevxfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep freevxfs')[0]:
-            return_value.append('freevxfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('freevxfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v freevxfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep freevxfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('freevxfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('freevxfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('freevxfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_2_deb():
     return_value = list()
     success, error = check('modprobe -n -v jffs2')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep jffs2')[0]:
-            return_value.append('jffs2 cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('jffs2 could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v jffs2 did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep jffs2')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('jffs2 cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('jffs2 is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('jffs2 mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_deb():
     return_value = list()
     success, error = check('modprobe -n -v hfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfs')[0]:
-            return_value.append('hfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_deb():
     return_value = list()
     success, error = check('modprobe -n -v hfsplus')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfsplus')[0]:
-            return_value.append('hfsplus cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfsplus could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfsplus did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfsplus')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfsplus cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfsplus is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfsplus mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -3600,19 +4504,30 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_fed():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -3625,57 +4540,90 @@ def _1_1_1_2_fed():
         return_value.append(success)
     else:
         success, error = check('modprobe -n -v vfat')
-        if 'install /bin/true' in success or 'not found in directory' in error:
-            if not check('lsmod | grep vfat')[0]:
-                return_value.append('vfat cannot be mounted')
-                return_value.append('PASS')
-                return_value.append(success if success else error)
-        elif 'insmod' in success:
+        if 'insmod' in success:
             return_value.append('vfat can be mounted')
-            return_value.append('CHEK')
+            return_value.append('FAIL')
             return_value.append(success)
         else:
-            return_value.append('vfat could not be checked')
-            return_value.append('CHEK')
-            return_value.append('modprobe -n -v vfat did not return anything')
+            result_success = success
+            result_error = error
+            success, error = check('lsmod | grep vfat')
+            if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+                if not success:
+                    return_value.append('vfat cannot be mounted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success if result_success else result_error)
+                else:
+                    return_value.append('vfat is mounted')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success if result_success else result_error + '\n' + success)
+            else:
+                return_value.append('vfat mount status undetermined')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_fed():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
-        return_value.append('squshfs can be mounted')
+    if 'insmod' in success:
+        return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('squashfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v squashfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_fed():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -4091,15 +5039,30 @@ def _1_1_22_fed():
 def _1_1_23_fed():
     return_value = list()
     success, error = check('modprobe -n -v usb-storage')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep usb-storage')[0]:
-            return_value.append('usb-storage cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep usb-storage')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('usb-storage cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('usb-storage is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('usb-storage mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -4115,19 +5078,30 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_red():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -4140,57 +5114,90 @@ def _1_1_1_2_red():
         return_value.append(success)
     else:
         success, error = check('modprobe -n -v vfat')
-        if 'install /bin/true' in success or 'not found in directory' in error:
-            if not check('lsmod | grep vfat')[0]:
-                return_value.append('vfat cannot be mounted')
-                return_value.append('PASS')
-                return_value.append(success if success else error)
-        elif 'insmod' in success:
+        if 'insmod' in success:
             return_value.append('vfat can be mounted')
-            return_value.append('CHEK')
+            return_value.append('FAIL')
             return_value.append(success)
         else:
-            return_value.append('vfat could not be checked')
-            return_value.append('CHEK')
-            return_value.append('modprobe -n -v vfat did not return anything')
+            result_success = success
+            result_error = error
+            success, error = check('lsmod | grep vfat')
+            if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+                if not success:
+                    return_value.append('vfat cannot be mounted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success if result_success else result_error)
+                else:
+                    return_value.append('vfat is mounted')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success if result_success else result_error + '\n' + success)
+            else:
+                return_value.append('vfat mount status undetermined')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_red():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('vfat could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v vfat did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_red():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -4601,15 +5608,30 @@ def _1_1_22_red():
 def _1_1_23_red():
     return_value = list()
     success, error = check('modprobe -n -v usb-storage')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep usb-storage')[0]:
-            return_value.append('usb-storage cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep usb-storage')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('usb-storage cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('usb-storage is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('usb-storage mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -4625,152 +5647,240 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_sus():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_2_sus():
     return_value = list()
     success, error = check('modprobe -n -v freevxfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep freevxfs')[0]:
-            return_value.append('freevxfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('freevxfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v freevxfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep freevxfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('freevxfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('freevxfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('freevxfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_sus():
     return_value = list()
     success, error = check('modprobe -n -v jffs2')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep jffs2')[0]:
-            return_value.append('jffs2 cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('jffs2 could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v jffs2 did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep jffs2')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('jffs2 cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('jffs2 is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('jffs2 mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_sus():
     return_value = list()
     success, error = check('modprobe -n -v hfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfs')[0]:
-            return_value.append('hfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_5_sus():
     return_value = list()
     success, error = check('modprobe -n -v hfsplus')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfsplus')[0]:
-            return_value.append('hfsplus cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfsplus could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfsplus did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfsplus')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfsplus cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfsplus is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfsplus mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_6_sus():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('squashfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v squashfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_7_sus():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_8_sus():
     return_value = list()
     success, error = check('modprobe -n -v vfat')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep vfat')[0]:
-            return_value.append('vfat cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('vfat can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('vfat could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v vfat did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep vfat')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('vfat cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('vfat is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('vfat mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -5195,133 +6305,210 @@ Goto line "156" in order to view definition of test()
 def _1_1_1_1_ubu():
     return_value = list()
     success, error = check('modprobe -n -v cramfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep cramfs')[0]:
-            return_value.append('cramfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('cramfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('cramfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v cramfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep cramfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('cramfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('cramfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('cramfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_2_ubu():
     return_value = list()
     success, error = check('modprobe -n -v freevxfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep freevxfs')[0]:
-            return_value.append('freevxfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('freevxfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('freevxfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v freevxfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep freevxfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('freevxfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('freevxfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('freevxfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_3_ubu():
     return_value = list()
     success, error = check('modprobe -n -v jffs2')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep jffs2')[0]:
-            return_value.append('jffs2 cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('jffs2 can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('jffs2 could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v jffs2 did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep jffs2')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('jffs2 cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('jffs2 is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('jffs2 mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_4_ubu():
     return_value = list()
     success, error = check('modprobe -n -v hfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfs')[0]:
-            return_value.append('hfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_5_ubu():
     return_value = list()
     success, error = check('modprobe -n -v hfsplus')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep hfsplus')[0]:
-            return_value.append('hfsplus cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('hfsplus can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('hfsplus could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v hfsplus did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep hfsplus')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('hfsplus cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('hfsplus is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('hfsplus mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_6_ubu():
     return_value = list()
     success, error = check('modprobe -n -v squashfs')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep squashfs')[0]:
-            return_value.append('squashfs cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('squashfs can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('squashfs could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v squashfs did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep squashfs')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('squashfs cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('squashfs is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('squashfs mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
 def _1_1_1_7_ubu():
     return_value = list()
     success, error = check('modprobe -n -v udf')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep udf')[0]:
-            return_value.append('udf cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('udf can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
     else:
-        return_value.append('udf could not be checked')
-        return_value.append('CHEK')
-        return_value.append('modprobe -n -v udf did not return anything')
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep udf')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('udf cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('udf is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('udf mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -5334,19 +6521,30 @@ def _1_1_1_8_ubu():
         return_value.append(success)
     else:
         success, error = check('modprobe -n -v vfat')
-        if 'install /bin/true' in success or 'not found in directory' in error:
-            if not check('lsmod | grep vfat')[0]:
-                return_value.append('vfat cannot be mounted')
-                return_value.append('PASS')
-                return_value.append(success if success else error)
-        elif 'insmod' in success:
+        if 'insmod' in success:
             return_value.append('vfat can be mounted')
-            return_value.append('CHEK')
+            return_value.append('FAIL')
             return_value.append(success)
         else:
-            return_value.append('vfat could not be checked')
-            return_value.append('CHEK')
-            return_value.append('modprobe -n -v vfat did not return anything')
+            result_success = success
+            result_error = error
+            success, error = check('lsmod | grep vfat')
+            if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+                if not success:
+                    return_value.append('vfat cannot be mounted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success if result_success else result_error)
+                else:
+                    return_value.append('vfat is mounted')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success if result_success else result_error + '\n' + success)
+            else:
+                return_value.append('vfat mount status undetermined')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
@@ -5762,15 +6960,30 @@ def _1_1_22_ubu():
 def _1_1_23_ubu():
     return_value = list()
     success, error = check('modprobe -n -v usb-storage')
-    if 'install /bin/true' in success or 'not found in directory' in error:
-        if not check('lsmod | grep usb-storage')[0]:
-            return_value.append('usb-storage cannot be mounted')
-            return_value.append('PASS')
-            return_value.append(success if success else error)
-    elif 'insmod' in success:
+    if 'insmod' in success:
         return_value.append('usb-storage can be mounted')
         return_value.append('FAIL')
         return_value.append(success)
+    else:
+        result_success = success
+        result_error = error
+        success, error = check('lsmod | grep usb-storage')
+        if 'install /bin/true' in result_success or 'not found in directory' in result_error:
+            if not success:
+                return_value.append('usb-storage cannot be mounted')
+                return_value.append('PASS')
+                return_value.append(
+                    result_success if result_success else result_error)
+            else:
+                return_value.append('usb-storage is mounted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success if result_success else result_error + '\n' + success)
+        else:
+            return_value.append('usb-storage mount status undetermined')
+            return_value.append('PASS')
+            return_value.append(
+                result_success if result_success else result_error + '\n' + success + '\n' + error)
     return return_value
 
 
