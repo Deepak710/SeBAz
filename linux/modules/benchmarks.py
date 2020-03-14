@@ -56,7 +56,7 @@ benchmark_ind = [
         'Ensure bootloader password is set (bootloader specific)'],
     ['1.4.3', 1, 1, 1, 'Ensure authentication required for single user mode'],
     ['1.4.4', 0, 1, 1,
-        'Ensure interactive boot is not enabled (distro specific)'],
+        'Ensure interactive boot is not enabled (bootloader specific)'],
     ['1.5.1', 1, 1, 1, 'Ensure core dumps are restricted'],
     ['1.5.2', 1, 1, 1, 'Ensure XD/NX support is enabled'],
     ['1.5.3', 1, 1, 1,
@@ -143,6 +143,17 @@ benchmark_ind = [
     ['3.4.2', 1, 2, 2, 'Ensure SCTP is disabled'],
     ['3.4.3', 1, 2, 2, 'Ensure RDS is disabled'],
     ['3.4.4', 1, 2, 2, 'Ensure TIPC is disabled'],
+    ['3.5.1.1', 1, 1, 1, 'Ensure IPv6 default deny firewall policy'],
+    ['3.5.1.2', 1, 1, 1, 'Ensure IPv6 loopback traffic is configured'],
+    ['3.5.1.3', 0, 1, 1, 'Ensure IPv6 outbound and established connections are configured'],
+    ['3.5.1.4', 0, 1, 1, 'Ensure IPv6 firewall rules exist for all open ports'],
+    ['3.5.2.1', 1, 1, 1, 'Ensure default deny firewall policy'],
+    ['3.5.2.2', 1, 1, 1, 'Ensure loopback traffic is configured'],
+    ['3.5.2.3', 0, 1, 1, 'Ensure outbound and established connections are configured'],
+    ['3.5.2.4', 1, 1, 1, 'Ensure firewall rules exist for all open ports'],
+    ['3.5.3', 1, 1, 1, 'Ensure iptables is installed (distro specific)'],
+    ['3.6', 0, 1, 2, 'Ensure wireless interfaces are disabled'],
+    ['3.7', 0, 2, 2, 'Disable IPv6'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -1163,7 +1174,7 @@ def _1_4_3_ind():
     return return_value
 
 
-# distro specific
+# bootloader specific
 def _1_4_4_ind():
     return_value = list()
     success, error = check(
@@ -2596,7 +2607,7 @@ def _2_3_1_ind():
     return return_value
     success, error = check('sudo dpkg -s ypbind')
     if 'Status: install ok installed' in success:
-        return_value.append('X Window System installed')
+        return_value.append('NIS Client installed')
         return_value.append('FAIL')
         return_value.append(success)
     else:
@@ -2699,20 +2710,20 @@ def _2_3_5_ind():
 def _3_1_1_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.ip_forward')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.ip_forward" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check('sysctl net.ipv6.conf.all.forwarding')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv6\.conf\.all\.forwarding" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv6 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv6):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                     return_value.append('IP forwarding disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -2738,21 +2749,21 @@ def _3_1_1_ind():
 def _3_1_2_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.send_redirects')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check(
                 'sysctl net.ipv4.conf.default.send_redirects')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.send_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv4):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
                     return_value.append('packet redirect sending is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -2778,40 +2789,40 @@ def _3_1_2_ind():
 def _3_2_1_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.accept_source_route')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check(
                 'sysctl net.ipv4.conf.default.accept_source_route')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success += success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv4):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
                     result_success += success + '\n'
                     success, error = check(
                         'sysctl net.ipv6.conf.all.accept_source_route')
-                    if success.endswith('0'):
+                    if success.endswith('0\n'):
                         result_success = success + '\n'
                         success, error = check(
                             'grep "net\.ipv6\.conf\.all\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
                         ipv6 = [s.split(':')[1] for s in success.splitlines()]
-                        if all(s.endswith('0') for s in ipv6):
+                        if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                             result_success += success + '\n'
                             success, error = check(
                                 'sysctl net.ipv6.conf.default.accept_source_route')
-                            if success.endswith('0'):
+                            if success.endswith('0\n'):
                                 result_success += success + '\n'
                                 success, error = check(
                                     'grep "net\.ipv6\.conf\.default\.accept_source_route" /etc/sysctl.conf /etc/sysctl.d/*')
                                 ipv6 = [s.split(':')[1]
                                         for s in success.splitlines()]
-                                if all(s.endswith('0') for s in ipv6):
+                                if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                                     return_value.append(
                                         'source routed packets are not accepted')
                                     return_value.append('PASS')
@@ -2859,40 +2870,40 @@ def _3_2_1_ind():
 def _3_2_2_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.accept_redirects')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check(
                 'sysctl net.ipv4.conf.default.accept_redirects')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success += success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv4):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
                     result_success += success + '\n'
                     success, error = check(
                         'sysctl net.ipv6.conf.all.accept_redirects')
-                    if success.endswith('0'):
+                    if success.endswith('0\n'):
                         result_success = success + '\n'
                         success, error = check(
                             'grep "net\.ipv6\.conf\.all\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
                         ipv6 = [s.split(':')[1] for s in success.splitlines()]
-                        if all(s.endswith('0') for s in ipv6):
+                        if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                             result_success += success + '\n'
                             success, error = check(
                                 'sysctl net.ipv6.conf.default.accept_redirects')
-                            if success.endswith('0'):
+                            if success.endswith('0\n'):
                                 result_success += success + '\n'
                                 success, error = check(
                                     'grep "net\.ipv6\.conf\.default\.accept_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
                                 ipv6 = [s.split(':')[1]
                                         for s in success.splitlines()]
-                                if all(s.endswith('0') for s in ipv6):
+                                if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                                     return_value.append(
                                         'ICMP redirects not accepted')
                                     return_value.append('PASS')
@@ -2939,21 +2950,21 @@ def _3_2_2_ind():
 def _3_2_3_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.secure_redirects')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check(
                 'sysctl net.ipv4.conf.default.secure_redirects')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.secure_redirects" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv4):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv4) or not ipv4:
                     return_value.append('secure ICMP redirects not accepted')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -2979,20 +2990,20 @@ def _3_2_3_ind():
 def _3_2_4_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.log_martians')
-    if success.endswith('1'):
+    if success.endswith('1\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('1') for s in ipv4):
+        if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check('sysctl net.ipv4.conf.default.log_martians')
-            if success.endswith('1'):
+            if success.endswith('1\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.log_martians" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('1') for s in ipv4):
+                if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
                     return_value.append('suspicious packets are logged')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -3018,12 +3029,12 @@ def _3_2_4_ind():
 def _3_2_5_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.icmp_echo_ignore_broadcasts')
-    if success.endswith('1'):
+    if success.endswith('1\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.icmp_echo_ignore_broadcasts" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('1') for s in ipv4):
+        if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
             return_value.append('broadcast ICMP requests ignored')
             return_value.append('PASS')
             return_value.append(result_success + success)
@@ -3041,12 +3052,12 @@ def _3_2_5_ind():
 def _3_2_6_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.icmp_ignore_bogus_error_responses')
-    if success.endswith('1'):
+    if success.endswith('1\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net.ipv4.icmp_ignore_bogus_error_responses" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('1') for s in ipv4):
+        if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
             return_value.append('bogus ICMP responses ignored')
             return_value.append('PASS')
             return_value.append(result_success + success)
@@ -3064,20 +3075,20 @@ def _3_2_6_ind():
 def _3_2_7_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.conf.all.rp_filter')
-    if success.endswith('1'):
+    if success.endswith('1\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.conf\.all\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('1') for s in ipv4):
+        if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
             result_success += success + '\n'
             success, error = check('sysctl net.ipv4.conf.default.rp_filter')
-            if success.endswith('1'):
+            if success.endswith('1\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv4\.conf\.default\.rp_filter" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('1') for s in ipv4):
+                if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
                     return_value.append('Reverse Path Filtering enabled')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -3103,12 +3114,12 @@ def _3_2_7_ind():
 def _3_2_8_ind():
     return_value = list()
     success, error = check('sysctl net.ipv4.tcp_syncookies')
-    if success.endswith('1'):
+    if success.endswith('1\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv4\.tcp_syncookies" /etc/sysctl.conf /etc/sysctl.d/*')
         ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('1') for s in ipv4):
+        if all(s.endswith('1') or s.startswith('#') for s in ipv4) or not ipv4:
             return_value.append('TCP SYN Cookies enabled')
             return_value.append('PASS')
             return_value.append(result_success + success)
@@ -3126,20 +3137,20 @@ def _3_2_8_ind():
 def _3_2_9_ind():
     return_value = list()
     success, error = check('sysctl net.ipv6.conf.all.accept_ra')
-    if success.endswith('0'):
+    if success.endswith('0\n'):
         result_success = success + '\n'
         success, error = check(
             'grep "net\.ipv6\.conf\.all\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*')
-        ipv4 = [s.split(':')[1] for s in success.splitlines()]
-        if all(s.endswith('0') for s in ipv4):
+        ipv6 = [s.split(':')[1] for s in success.splitlines()]
+        if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
             result_success += success + '\n'
             success, error = check('sysctl net.ipv6.conf.default.accept_ra')
-            if success.endswith('0'):
+            if success.endswith('0\n'):
                 result_success = success + '\n'
                 success, error = check(
                     'grep "net\.ipv6\.conf\.default\.accept_ra" /etc/sysctl.conf /etc/sysctl.d/*')
                 ipv4 = [s.split(':')[1] for s in success.splitlines()]
-                if all(s.endswith('0') for s in ipv4):
+                if all(s.endswith('0') or s.startswith('#') for s in ipv6) or not ipv6:
                     return_value.append('IPv6 router advert not accepted')
                     return_value.append('PASS')
                     return_value.append(result_success + success)
@@ -3171,7 +3182,7 @@ def _3_3_1_ind():
     return return_value
     success, error = check('sudo dpkg -s tcpd')
     if 'Status: install ok installed' in success:
-        return_value.append('talk client installed')
+        return_value.append('TCP Wrappers installed')
         return_value.append('PASS')
         return_value.append(success)
     else:
@@ -3377,6 +3388,624 @@ def _3_4_4_ind():
             return_value.append('PASS')
             return_value.append(
                 result_success if result_success else result_error + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _3_5_1_1_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('sudo ip6tables -L | grep Chain')
+    if success:
+        if all('policy DROP' in s or 'policy REJECT' in s for s in success.splitlines()):
+            return_value.append('IPv6 default deny policy')
+            return_value.append('PASS')
+            return_value.append(
+                success + '\nFollowing uses ipv6\n' + result_success)
+        else:
+            return_value.append('IPv6 default no deny policy')
+            return_value.append('FAIL')
+            return_value.append(
+                success + '\nFollowing uses ipv6\n' + result_success)
+    else:
+        if result_success:
+            return_value.append('ipv6 used though disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'The following have ipv6 enabled\n' + result_success)
+        else:
+            return_value.append('ipv6 disabled')
+            return_value.append('PASS')
+            return_value.append(
+                'ipv6 seems to be disabled\n' + result_error + '\n' + error)
+    return return_value
+
+
+def _3_5_1_2_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('sudo ip6tables -L INPUT -v -n')
+    if success:
+        loopbacks = [s for s in success.splitlines()]
+        flag = 1
+        if len(loopbacks) > 2:
+            flag = 0
+            for i in range(2, len(loopbacks)):
+                rule = loopbacks[i].split()
+                if rule[2] == 'ACCEPT' and not flag:
+                    if rule[3] == 'all':
+                        if rule[-4] == 'lo':
+                            if rule[-3] == '*':
+                                if rule[-2] == '::/0':
+                                    if rule[-1] == '::/0':
+                                        flag = 0
+                                    else:
+                                        return_value.append(
+                                            'IPv6 input accpet destination not ::/0')
+                                        return_value.append('FAIL')
+                                        return_value.append(
+                                            success + '\nFollowing uses ipv6\n' + result_success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'IPv6 input accpet source not ::/0')
+                                    return_value.append('FAIL')
+                                    return_value.append(
+                                        success + '\nFollowing uses ipv6\n' + result_success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append(
+                                    'IPv6 input accpet out not *')
+                                return_value.append('FAIL')
+                                return_value.append(
+                                    success + '\nFollowing uses ipv6\n' + result_success)
+                                flag += 1
+                                break
+                        else:
+                            return_value.append('IPv6 input accpet in not lo')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                success + '\nFollowing uses ipv6\n' + result_success)
+                            flag += 1
+                            break
+                    else:
+                        return_value.append('IPv6 input accept prot not all')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            success + '\nFollowing uses ipv6\n' + result_success)
+                        flag += 1
+                        break
+                elif rule[2] == 'DROP' and not flag:
+                    if rule[3] == 'all':
+                        if rule[-4] == '*':
+                            if rule[-3] == '*':
+                                if rule[-2] == '::1':
+                                    if rule[-1] == '::/0':
+                                        flag = 0
+                                    else:
+                                        return_value.append(
+                                            'IPv6 input drop destination not ::/0')
+                                        return_value.append('FAIL')
+                                        return_value.append(
+                                            success + '\nFollowing uses ipv6\n' + result_success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'IPv6 input drop source not ::1')
+                                    return_value.append('FAIL')
+                                    return_value.append(
+                                        success + '\nFollowing uses ipv6\n' + result_success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append(
+                                    'IPv6 input drop out not *')
+                                return_value.append('FAIL')
+                                return_value.append(
+                                    success + '\nFollowing uses ipv6\n' + result_success)
+                                flag += 1
+                                break
+                        else:
+                            return_value.append('IPv6 input drop in not *')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                success + '\nFollowing uses ipv6\n' + result_success)
+                            flag += 1
+                            break
+                    else:
+                        return_value.append('IPv6 input drop prot not all')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            success + '\nFollowing uses ipv6\n' + result_success)
+                        flag += 1
+                        break
+        else:
+            return_value.append('IPv6 input loopback no config')
+            return_value.append('FAIL')
+            return_value.append(
+                success + '\nFollowing uses ipv6\n' + result_success)
+        if not flag:
+            result_success += '\nConfig of IPv6 Input table\n' + success + '\n'
+            success, error = check('sudo ip6tables -L OUTPUT -v -n')
+            if success:
+                loopbacks = [s for s in success.splitlines()]
+                if len(loopbacks) > 2:
+                    for i in range(2, len(loopbacks)):
+                        rule = loopbacks[i].split()
+                        if rule[2] == 'ACCEPT' and not flag:
+                            if rule[3] == 'all':
+                                if rule[-4] == '*':
+                                    if rule[-3] == 'lo':
+                                        if rule[-2] == '::/0':
+                                            if rule[-1] == '::/0':
+                                                return_value.append(
+                                                    'IPv6 loopback traffic is configured')
+                                                return_value.append('PASS')
+                                                return_value.append(
+                                                    success + '\nFollowing uses ipv6\n' + result_success)
+                                            else:
+                                                return_value.append(
+                                                    'IPv6 output accpet destination not ::/0')
+                                                return_value.append('FAIL')
+                                                return_value.append(
+                                                    success + '\nFollowing uses ipv6\n' + result_success)
+                                                flag += 1
+                                                break
+                                        else:
+                                            return_value.append(
+                                                'IPv6 output accpet source not ::/0')
+                                            return_value.append('FAIL')
+                                            return_value.append(
+                                                success + '\nFollowing uses ipv6\n' + result_success)
+                                            flag += 1
+                                            break
+                                    else:
+                                        return_value.append(
+                                            'IPv6 output accpet out not lo')
+                                        return_value.append('FAIL')
+                                        return_value.append(
+                                            success + '\nFollowing uses ipv6\n' + result_success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'IPv6 output accpet in not *')
+                                    return_value.append('FAIL')
+                                    return_value.append(
+                                        success + '\nFollowing uses ipv6\n' + result_success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append(
+                                    'IPv6 output accept prot not all')
+                                return_value.append('FAIL')
+                                return_value.append(
+                                    success + '\nFollowing uses ipv6\n' + result_success)
+                                flag += 1
+                                break
+                else:
+                    return_value.append('IPv6 output loopback no config')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        success + '\nFollowing uses ipv6\n' + result_success)
+            else:
+                if result_success:
+                    return_value.append(
+                        'ipv6 enabled output loopback disabled')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        'The following have ipv6 enabled\n' + result_success)
+                else:
+                    return_value.append('ipv6 disabled')
+                    return_value.append('PASS')
+                    return_value.append(
+                        'ipv6 seems to be disabled\n' + result_error + '\n' + error)
+    else:
+        if result_success:
+            return_value.append('ipv6 enabled input loopback disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'The following have ipv6 enabled\n' + result_success)
+        else:
+            return_value.append('ipv6 disabled')
+            return_value.append('PASS')
+            return_value.append(
+                'ipv6 seems to be disabled\n' + result_error + '\n' + error)
+    return return_value
+
+
+def _3_5_1_3_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('sudo ip6tables -L -v -n')
+    if success:
+        if len(success.splitlines()) > 8:
+            return_value.append('IPv6 Table contains config')
+            return_value.append('PASS')
+            return_value.append('verify all rules for new outbound, and established connections match site policy\n' +
+                                success + '\nFollowing uses ipv6\n' + result_success)
+        else:
+            return_value.append('IPv6 Table contains no config')
+            return_value.append('FAIL')
+            return_value.append(
+                success + '\nFollowing uses ipv6\n' + result_success)
+    else:
+        if result_success:
+            return_value.append('ipv6 used though disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'The following have ipv6 enabled\n' + result_success)
+        else:
+            return_value.append('ipv6 disabled')
+            return_value.append('PASS')
+            return_value.append(
+                'ipv6 seems to be disabled\n' + result_error + '\n' + error)
+    return return_value
+
+
+def _3_5_1_4_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('ss -6tuln')
+    if success:
+        open_ports = [s.split()[0]
+                      for s in success.splitlines() if s.split()[0] != 'Netid']
+        if len(open_ports):
+            result_success = success
+            success, error = check('sudo ip6tables -L INPUT -v -n')
+            if success:
+                rules = [s.split()[0] for s in success.splitlines() if s.split()[0] != 'Chain' and s.split()[
+                    0] != 'pkts' and s.split()[2] not in ['ACCEPT', 'DROP', 'QUEUE', 'RETURN']]
+                if all(o in rules for o in open_ports):
+                    return_value.append('all open ports have firewall rule')
+                    return_value.append('PASS')
+                    return_value.append('Following open ports were found\n' +
+                                        result_success + '\nIPv6 input table configuration\n' + success)
+                else:
+                    return_value.append('open ports no firewall rule')
+                    return_value.append('FAIL')
+                    return_value.append('Following open ports were found\n' +
+                                        result_success + '\nIPv6 input table configuration\n' + success)
+            else:
+                return_value.append('IPv6 input Table not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    error + '\nFollowing open ports were found\n' + result_success)
+        else:
+            return_value.append('no open ports found')
+            return_value.append('PASS')
+            return_value.append(
+                success + '\nFollowing uses ipv6\n' + result_success)
+    else:
+        if result_success:
+            return_value.append('ipv6 used though disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                'The following have ipv6 enabled\n' + result_success)
+        else:
+            return_value.append('ipv6 disabled')
+            return_value.append('PASS')
+            return_value.append(
+                'ipv6 seems to be disabled\n' + result_error + '\n' + error)
+    return return_value
+
+
+def _3_5_2_1_ind():
+    return_value = list()
+    success, error = check('sudo iptables -L | grep Chain')
+    if success:
+        if all('policy DROP' in s or 'policy REJECT' in s for s in success.splitlines()):
+            return_value.append('default deny firewall policy')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('no default deny firewall')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('firewall policy not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_5_2_2_ind():
+    return_value = list()
+    success, error = check('sudo iptables -L INPUT -v -n')
+    if success:
+        loopbacks = [s for s in success.splitlines()]
+        flag = 1
+        if len(loopbacks) > 2:
+            flag = 0
+            for i in range(2, len(loopbacks)):
+                rule = loopbacks[i].split()
+                if rule[2] == 'ACCEPT' and not flag:
+                    if rule[3] == 'all':
+                        if rule[-4] == 'lo':
+                            if rule[-3] == '*':
+                                if rule[-2] == '0.0.0.0/0':
+                                    if rule[-1] == '0.0.0.0/0':
+                                        flag = 0
+                                    else:
+                                        return_value.append(
+                                            'fw input accpet destination not 0.0.0.0/0')
+                                        return_value.append('FAIL')
+                                        return_value.append(success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'fw input accpet source not 0.0.0.0/0')
+                                    return_value.append('FAIL')
+                                    return_value.append(success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append(
+                                    'fw input accpet out not *')
+                                return_value.append('FAIL')
+                                return_value.append(success)
+                                flag += 1
+                                break
+                        else:
+                            return_value.append('fw input accpet in not lo')
+                            return_value.append('FAIL')
+                            return_value.append(success)
+                            flag += 1
+                            break
+                    else:
+                        return_value.append('fw input accept prot not all')
+                        return_value.append('FAIL')
+                        return_value.append(success)
+                        flag += 1
+                        break
+                elif rule[2] == 'DROP' and not flag:
+                    if rule[3] == 'all':
+                        if rule[-4] == '*':
+                            if rule[-3] == '*':
+                                if rule[-2] == '127.0.0.0/8':
+                                    if rule[-1] == '0.0.0.0/0':
+                                        flag = 0
+                                    else:
+                                        return_value.append(
+                                            'fw input drop destination not 0.0.0.0/0')
+                                        return_value.append('FAIL')
+                                        return_value.append(success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'fw input drop source not 127.0.0.0/8')
+                                    return_value.append('FAIL')
+                                    return_value.append(success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append('fw input drop out not *')
+                                return_value.append('FAIL')
+                                return_value.append(success)
+                                flag += 1
+                                break
+                        else:
+                            return_value.append('fw input drop in not *')
+                            return_value.append('FAIL')
+                            return_value.append(success)
+                            flag += 1
+                            break
+                    else:
+                        return_value.append('fw input drop prot not all')
+                        return_value.append('FAIL')
+                        return_value.append(success)
+                        flag += 1
+                        break
+        else:
+            return_value.append('fw input loopback no config')
+            return_value.append('FAIL')
+            return_value.append(success)
+        if not flag:
+            result_success = '\nConfig of firewall Input table\n' + success + '\n'
+            success, error = check('sudo iptables -L OUTPUT -v -n')
+            if success:
+                loopbacks = [s for s in success.splitlines()]
+                if len(loopbacks) > 2:
+                    for i in range(2, len(loopbacks)):
+                        rule = loopbacks[i].split()
+                        if rule[2] == 'ACCEPT' and not flag:
+                            if rule[3] == 'all':
+                                if rule[-4] == '*':
+                                    if rule[-3] == 'lo':
+                                        if rule[-2] == '0.0.0.0/0':
+                                            if rule[-1] == '0.0.0.0/0':
+                                                return_value.append(
+                                                    'firewall loopback traffic configured')
+                                                return_value.append('PASS')
+                                                return_value.append(
+                                                    success + result_success)
+                                            else:
+                                                return_value.append(
+                                                    'fw output accpet destination not 0.0.0.0/0')
+                                                return_value.append('FAIL')
+                                                return_value.append(
+                                                    success + result_success)
+                                                flag += 1
+                                                break
+                                        else:
+                                            return_value.append(
+                                                'fw output accpet source not 0.0.0.0/0')
+                                            return_value.append('FAIL')
+                                            return_value.append(
+                                                success + result_success)
+                                            flag += 1
+                                            break
+                                    else:
+                                        return_value.append(
+                                            'fw output accpet out not lo')
+                                        return_value.append('FAIL')
+                                        return_value.append(
+                                            success + result_success)
+                                        flag += 1
+                                        break
+                                else:
+                                    return_value.append(
+                                        'fw output accpet in not *')
+                                    return_value.append('FAIL')
+                                    return_value.append(
+                                        success + result_success)
+                                    flag += 1
+                                    break
+                            else:
+                                return_value.append(
+                                    'fw output accept prot not all')
+                                return_value.append('FAIL')
+                                return_value.append(success + result_success)
+                                flag += 1
+                                break
+                else:
+                    return_value.append('fw output loopback no config')
+                    return_value.append('FAIL')
+                    return_value.append(success + result_success)
+            else:
+                return_value.append('firewall output loopback not found')
+                return_value.append('FAIL')
+                return_value.append(error)
+    else:
+        return_value.append('firewall input loopback not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_5_2_3_ind():
+    return_value = list()
+    success, error = check('sudo iptables -L -v -n')
+    if success:
+        if len(success.splitlines()) > 8:
+            return_value.append('iptables contains config')
+            return_value.append('PASS')
+            return_value.append(
+                'verify all rules for new outbound, and established connections match site policy\n' + success)
+        else:
+            return_value.append('iptables contains no config')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('iptables not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_5_2_4_ind():
+    return_value = list()
+    success, error = check('ss -4tuln')
+    if success:
+        open_ports = [s.split()[0]
+                      for s in success.splitlines() if s.split()[0] != 'Netid']
+        if len(open_ports):
+            result_success = success
+            success, error = check('sudo iptables -L INPUT -v -n')
+            if success:
+                rules = [s.split()[0] for s in success.splitlines() if s.split()[0] != 'Chain' and s.split()[
+                    0] != 'pkts' and s.split()[2] not in ['ACCEPT', 'DROP', 'QUEUE', 'RETURN']]
+                if all(o in rules for o in open_ports):
+                    return_value.append('all open ports have firewall rule')
+                    return_value.append('PASS')
+                    return_value.append('Following open ports were found\n' +
+                                        result_success + '\niptables input configuration\n' + success)
+                else:
+                    return_value.append('open ports no firewall rule')
+                    return_value.append('FAIL')
+                    return_value.append('Following open ports were found\n' +
+                                        result_success + '\niptables input configuration\n' + success)
+            else:
+                return_value.append('iptables input not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    error + '\nFollowing open ports were found\n' + result_success)
+        else:
+            return_value.append('no open ports found')
+            return_value.append('PASS')
+            return_value.append(success)
+    else:
+        return_value.append('no open ports found')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _3_5_3_ind():
+    return_value = list()
+    return_value.append('iptables not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('sudo dpkg -s iptables')
+    if 'Status: install ok installed' in success:
+        return_value.append('iptables installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('iptables not installed')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_6_ind():
+    return_value = list()
+    success, error = check('iwconfig')
+    if success:
+        result_success = success
+        success, error = check('ip link show up')
+        if success:
+            active_wlan = [s for s in success.splitlines() if 'wlan' in s.split()[
+                1]]
+            if not active_wlan:
+                return_value.append('wireless interfaces inactive')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('wireless interfaces active')
+                return_value.append('PASS')
+                return_value.append(result_success + '\n' + success)
+        else:
+            return_value.append('ip link status unkown')
+            return_value.append('CHEK')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('wireless interfaces disabled')
+        return_value.append('PASS')
+        return_value.append(error)
+    return return_value
+
+
+def _3_7_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disabled=1')
+    if success:
+        return_value.append('IPv6 enabled')
+        return_value.append('FAIL')
+        return_value.append('The following use IPv6\n' + success)
+    else:
+        return_value.append('IPv6 disabled')
+        return_value.append('PASS')
+        return_value.append(error)
     return return_value
 
 

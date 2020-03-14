@@ -3,7 +3,7 @@ from modules.optionsParser import get_recommendations, disp_exp
 from modules.benchmarks import test
 from modules.reportGenerator import createPDF, generatePDF
 from modules.termcolor.termcolor import cprint
-from os import system, path
+from os import system, path, geteuid
 from csv import writer
 from colorama import init
 import time
@@ -31,6 +31,8 @@ if options.exp != None:
 if options.report != None:
     generatePDF(options.report)
 
+if not geteuid() == 0:
+    exit('\nPlease run SeBAz as root\n')
 system('sudo clear')
 init()
 cprint('Welcome to SeBAz', attrs=['bold'])
