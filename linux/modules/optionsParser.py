@@ -1,3 +1,6 @@
+from sys import exit
+
+
 # returns a list f benchmarks that matchess the options
 def get_recommendations(options):
 

@@ -1,14 +1,14 @@
 from modules.optionsParser import get_recommendations, disp_exp
 from modules.reportGenerator import createPDF, generatePDF
-from modules.termcolor.termcolor import cprint, colored
 from modules.argumentParser import parser
 from time import time, gmtime, localtime
+from termcolor import cprint, colored
 from os import system, path, geteuid
 from modules.benchmarks import test
 from enlighten import get_manager
-from fabulous.text import Text
 from colorama import init
 from csv import writer
+from sys import exit
 
 
 # getting optional arguments from user
@@ -43,8 +43,7 @@ if not geteuid() == 0:
 
 
 init()
-print('\n')
-print(Text("SeBAz", color='#0099ff', fsize=30, shadow=True, skew=1))
+cprint('Welcome to SeBAz', attrs=['bold'])
 print('\nGive me a moment to calculate the prerequisites...\n')
 
 

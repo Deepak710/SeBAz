@@ -1,4 +1,6 @@
 from argparse import ArgumentParser, RawTextHelpFormatter
+from sys import exit
+
 
 # initializing argument parser
 parser = ArgumentParser(prog='SeBAz',

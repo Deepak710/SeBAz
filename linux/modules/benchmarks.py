@@ -1,7 +1,8 @@
-from modules.termcolor.termcolor import cprint
 from subprocess import Popen, PIPE
-from time import time
+from termcolor import cprint
 from csv import writer
+from time import time
+from sys import exit
 
 
 """

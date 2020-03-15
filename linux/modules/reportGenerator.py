@@ -1,7 +1,8 @@
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4
-from csv import reader
 from modules.optionsParser import get_recommendations
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from csv import reader
+from sys import exit
 
 
 colorPass = [76, 175, 80]
