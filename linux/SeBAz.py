@@ -1,20 +1,24 @@
-from modules.argumentParser import parser
 from modules.optionsParser import get_recommendations, disp_exp
-from modules.benchmarks import test
 from modules.reportGenerator import createPDF, generatePDF
-from modules.termcolor.termcolor import cprint
+from modules.termcolor.termcolor import cprint, colored
+from modules.argumentParser import parser
+from time import time, gmtime, localtime
 from os import system, path, geteuid
-from csv import writer
+from modules.benchmarks import test
+from enlighten import get_manager
+from fabulous.text import Text
 from colorama import init
-import time
+from csv import writer
 
 
+# getting optional arguments from user
 options = parser.parse_args()
 
 
-start = time.time()
-gmtime = time.gmtime()
-local = time.localtime()
+# noting the start time
+start = time()
+gmt_time = gmtime()
+local = localtime()
 
 
 # setting distribution to independent if nothing is specified
@@ -25,17 +29,22 @@ if options.dist == None:
 # based on parameters passed during script call
 recommendations = get_recommendations(options)
 
+# displays the explanation of commands and exits
 if options.exp != None:
     disp_exp(recommendations)
 
+# generates report and exits
 if options.report != None:
     generatePDF(options.report)
 
+# exit if SeBAz isn't run as root
 if not geteuid() == 0:
     exit('\nPlease run SeBAz as root\n')
-system('sudo clear')
+
+
 init()
-cprint('Welcome to SeBAz', attrs=['bold'])
+print('\n')
+print(Text("SeBAz", color='#0099ff', fsize=30, shadow=True, skew=1))
 print('\nGive me a moment to calculate the prerequisites...\n')
 
 
@@ -51,37 +60,51 @@ length = len(recommendations)
 score = 0
 passed = 0
 
-
 if options.verbose:
     # printing the legend for verbose output
     print('Done. Here\'s the legend for the test results:')
-    cprint('Green Text indicates tests that have PASSED',
+    cprint('Green  Text indicates tests that have PASSED',
            'green', attrs=['bold'])
-    cprint('Red   Text indicates tests that have FAILED',
+    cprint('Red    Text indicates tests that have FAILED',
            'red', attrs=['bold'])
     if options.score == None:
-        cprint('Grey  Text indicates tests that are  NOT SCORED',
-               'grey', attrs=['bold'])
+        cprint('Yellow Text indicates tests that are  NOT SCORED',
+               'yellow', attrs=['bold'])
     print('\nPerforming ' + str(length) + ' tests now...\n')
 else:
     print('Done. Performing ' + str(length) + ' tests now...\n')
 
+# progressbar format
+bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
+    colored('pass', color='green', attrs=['bold']) + u':{count_0:{len_total}d} ' + \
+    colored('fail', color='red', attrs=['bold']) + u':{count_1:{len_total}d} ' + \
+    colored('chek', color='yellow', attrs=['bold']) + u':{count_2:{len_total}d} ' + \
+    u'[{elapsed}<{eta}, {rate:.1f}{unit_pad}{unit}/s]'
+manager = get_manager()
+passd = manager.counter(total=length, desc='Testing', unit='tests',
+                        color='bright_white', bar_format=bar_format)
+faild = passd.add_subcounter('bright_white')
+check = passd.add_subcounter('bright_white')
 
 # calling the benchmark functions
 for i, r in enumerate(recommendations):
-    s = test(r, file_path, options.dist) if options.verbose else test(
-        r, file_path, options.dist, i + 1, length)
+    passd.desc = '{rec:<8} {current:03d}/{total:03d}'.format(
+        rec=r[0], current=i+1, total=length)
+    if i + 1 == length:
+        passd.desc = '{:<16}'.format('Done')
+    s = test(r, file_path, options.dist, options.verbose,
+             passd, faild, check, manager.width)
     if s:
         passed += 1
     if s == 2:
         score += 1
+manager.stop()
 
-
-# writing test finish time to .SeBAz file
+# calculating runtime
 duration = '\nPerformed ' + str(length) + ' tests in '
 result = str(passed) + ' out of ' + str(length) + \
     ' have passed\nThis system\'s Score is ' + str(score)
-end = time.time() - start
+end = time() - start
 if (end // 60 % 60) < 1:
     duration += '{:.3f} seconds'.format(end)
 elif (end // 60 % 60) == 1:
@@ -90,30 +113,29 @@ else:
     duration += '{:.0f}'.format(end // 60 % 60) + \
         ' minutes and {:.3f} seconds'.format(end % 60)
 
-gmtime = time.gmtime()
-local = time.localtime()
+# writing test finish time to .SeBAz.csv file
 with open(file_path, 'a', newline='') as csvfile:
     csvwriter = writer(csvfile, dialect='excel')
     csvwriter.writerows(['\n', ['---<DO NOT MODIFY ANYTHING BELOW>---'], '\n'])
-    csvwriter.writerow(['Start Time (UTC): ' + str(gmtime.tm_year) + '-' + str(gmtime.tm_mon) + '-' + str(gmtime.tm_mday) +
-                        ' ' + str(gmtime.tm_hour) + ':' + str(gmtime.tm_min) + ':' + str(gmtime.tm_sec)])
+    csvwriter.writerow(['Start Time (UTC): ' + str(gmt_time.tm_year) + '-' + str(gmt_time.tm_mon) + '-' + str(gmt_time.tm_mday) +
+                        ' ' + str(gmt_time.tm_hour) + ':' + str(gmt_time.tm_min) + ':' + str(gmt_time.tm_sec)])
     csvwriter.writerow(['Start Time (Local): ' + str(local.tm_year) + '-' + str(local.tm_mon) + '-' +
                         str(local.tm_mday) + ' ' + str(local.tm_hour) + ':' + str(local.tm_min) + ':' + str(local.tm_sec)])
     csvwriter.writerow(['Options Given: '])
     for value in vars(options).items():
         csvwriter.writerow(value)
-    gmtime = time.gmtime()
-    local = time.localtime()
-    csvwriter.writerow(['Finish Time (UTC): ' + str(gmtime.tm_year) + '-' + str(gmtime.tm_mon) + '-' + str(gmtime.tm_mday) +
-                        ' ' + str(gmtime.tm_hour) + ':' + str(gmtime.tm_min) + ':' + str(gmtime.tm_sec)])
+    gmt_time = gmtime()
+    local = localtime()
+    csvwriter.writerow(['Finish Time (UTC): ' + str(gmt_time.tm_year) + '-' + str(gmt_time.tm_mon) + '-' + str(gmt_time.tm_mday) +
+                        ' ' + str(gmt_time.tm_hour) + ':' + str(gmt_time.tm_min) + ':' + str(gmt_time.tm_sec)])
     csvwriter.writerow(['Finish Time (Local): ' + str(local.tm_year) + '-' + str(local.tm_mon) + '-' +
                         str(local.tm_mday) + ' ' + str(local.tm_hour) + ':' + str(local.tm_min) + ':' + str(local.tm_sec)])
     csvwriter.writerow([duration.splitlines()[1]])
     csvwriter.writerow([result.splitlines()[0]])
     csvwriter.writerow([result.splitlines()[1]])
 
-print('\nGenerating ' + str(options.org) + '-' + str(options.unique) + '.pdf')
 # Generating PDF
+print('\nGenerating ' + str(options.org) + '-' + str(options.unique) + '.pdf')
 createPDF(file_path)
 print('Done.')
 

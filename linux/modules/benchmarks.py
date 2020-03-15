@@ -1,4 +1,3 @@
-from modules.printProgressAuto.progressBar import printProgressBar
 from modules.termcolor.termcolor import cprint
 from subprocess import Popen, PIPE
 from time import time
@@ -154,6 +153,30 @@ benchmark_ind = [
     ['3.5.3', 1, 1, 1, 'Ensure iptables is installed (distro specific)'],
     ['3.6', 0, 1, 2, 'Ensure wireless interfaces are disabled'],
     ['3.7', 0, 2, 2, 'Disable IPv6'],
+    ['4.1.1.1', 1, 2, 2, 'Ensure audit log storage size is configured'],
+    ['4.1.1.2', 1, 2, 2, 'Ensure system is disabled when audit logs are full'],
+    ['4.1.1.3', 1, 2, 2, 'Ensure audit logs are not automatically deleted'],
+    ['4.1.2', 1, 2, 2, 'Ensure auditd is installed (distro specific)'],
+    ['4.1.3', 1, 2, 2, 'Ensure auditd service is enabled'],
+    ['4.1.4', 1, 2, 2,
+        'Ensure auditing for processes that start prior to auditd is enabled (bootloader specific)'],
+    ['4.1.5', 1, 2, 2, 'Ensure events that modify date and time information are collected'],
+    ['4.1.6', 1, 2, 2, 'Ensure events that modify user/group information are collected'],
+    ['4.1.7', 1, 2, 2, "Ensure events that modify the system's network environment are collected"],
+    ['4.1.8', 1, 2, 2, "Ensure events that modify the system's Mandatory Access Controls are collected"],
+    ['4.1.9', 1, 2, 2, 'Ensure login and logout events are collected'],
+    ['4.1.10', 1, 2, 2, 'Ensure session initiation information is collected'],
+    ['4.1.11', 1, 2, 2, 'Ensure discretionary access control permission modification events are collected'],
+    ['4.1.12', 1, 2, 2, 'Ensure unsuccessful unauthorized file access attempts are collected'],
+    ['4.1.13', 1, 2, 2, 'Ensure use of privileged commands is collected'],
+    ['4.1.14', 1, 2, 2, 'Ensure successful file system mounts are collected'],
+    ['4.1.15', 1, 2, 2, 'Ensure file deletion events by users are collected'],
+    ['4.1.16', 1, 2, 2,
+        'Ensure changes to system administration scope (sudoers) is collected'],
+    ['4.1.17', 1, 2, 2,
+        'Ensure system administrator actions (sudolog) are collected'],
+    ['4.1.18', 1, 2, 2, 'Ensure kernel module loading and unloading is collected'],
+    ['4.1.19', 1, 2, 2, 'Ensure the audit configuration is immutable'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -313,16 +336,16 @@ benchmark_ubu = [
 ]
 
 
-def print_success(r, x, p): cprint(
-    '{:<8}   {:<50}\t{:>4}'.format(r, x, p), 'green', attrs=['bold'])
+def print_success(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16), 'green', attrs=['bold'])
 
 
-def print_fail(r, x, p): cprint('{:<8}   {:<50}\t{:>4}'.format(
-    r, x, p), 'red', attrs=['bold'])
+def print_fail(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16), 'red', attrs=['bold'])
 
 
-def print_neutral(r, x, p): cprint('{:<8}   {:<50}\t{:>4}'.format(
-    r, x, p), 'grey', attrs=['bold'])
+def print_neutral(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16), 'yellow', attrs=['bold'])
 
 
 # function to execute the check
@@ -1034,7 +1057,7 @@ def _1_2_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo apt-cache policy')
+    success, error = check('apt-cache policy')
     if success:
         return_value.append('check configuration of repos')
         return_value.append('CHEK')
@@ -1044,7 +1067,7 @@ def _1_2_1_ind():
         return_value.append('package configuration not checked')
         return_value.append('CHEK')
         return_value.append(
-            'sudo apt-cache policy did not return anything\n' + error)
+            'apt-cache policy did not return anything\n' + error)
     return return_value
 
 
@@ -1055,7 +1078,7 @@ def _1_2_2_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo apt-key list')
+    success, error = check('apt-key list')
     if success:
         return_value.append('check GPG keys source')
         return_value.append('CHEK')
@@ -1065,7 +1088,7 @@ def _1_2_2_ind():
         return_value.append('GPG keys not checked')
         return_value.append('CHEK')
         return_value.append(
-            'sudo apt-key list did not return any keys\n' + error)
+            'apt-key list did not return any keys\n' + error)
     return return_value
 
 
@@ -1076,7 +1099,7 @@ def _1_3_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s aide')
+    success, error = check('dpkg -s aide')
     if success:
         return_value.append('AIDE is installed')
         return_value.append('PASS')
@@ -1084,13 +1107,13 @@ def _1_3_1_ind():
     else:
         return_value.append('AIDE is not installed')
         return_value.append('FAIL')
-        return_value.append('sudo dpkg -s aide returned\n' + error)
+        return_value.append('dpkg -s aide returned\n' + error)
     return return_value
 
 
 def _1_3_2_ind():
     return_value = list()
-    success, error = check('sudo crontab -u root -l | grep aide')
+    success, error = check('crontab -u root -l | grep aide')
     if success:
         result = success
         success, error = check('grep -r aide /etc/cron.* /etc/crontab')
@@ -1115,7 +1138,7 @@ def _1_3_2_ind():
 # bootloader specific
 def _1_4_1_ind():
     return_value = list()
-    success, error = check('sudo stat /boot/grub*/grub.cfg | grep Access')
+    success, error = check('stat /boot/grub*/grub.cfg | grep Access')
     if success:
         if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
             if '(0400/-r--------)' in success:
@@ -1141,13 +1164,13 @@ def _1_4_1_ind():
 # bootloader specific
 def _1_4_2_ind():
     return_value = list()
-    success, error = check('sudo grep "^\s*password" /boot/grub/menu.lst')
+    success, error = check('grep "^\s*password" /boot/grub/menu.lst')
     if success:
         return_value.append('bootloader password is set')
         return_value.append('PASS')
         return_value.append(success)
     else:
-        success, error = check('sudo grep "^\s*password" /boot/grub/grub.cfg')
+        success, error = check('grep "^\s*password" /boot/grub/grub.cfg')
         if success:
             return_value.append('bootloader password is set')
             return_value.append('PASS')
@@ -1161,7 +1184,7 @@ def _1_4_2_ind():
 
 def _1_4_3_ind():
     return_value = list()
-    success, error = check('sudo grep ^root:[*\!]: /etc/shadow')
+    success, error = check('grep ^root:[*\!]: /etc/shadow')
     if success:
         return_value.append('auth required for single user mode')
         return_value.append('PASS')
@@ -1170,7 +1193,7 @@ def _1_4_3_ind():
         return_value.append('auth not required for single user mode')
         return_value.append('FAIL')
         return_value.append(
-            'sudo grep ^root:[*\!]: /etc/shadow returned the following\n' + error)
+            'grep ^root:[*\!]: /etc/shadow returned the following\n' + error)
     return return_value
 
 
@@ -1178,7 +1201,7 @@ def _1_4_3_ind():
 def _1_4_4_ind():
     return_value = list()
     success, error = check(
-        'sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot')
+        'grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot')
     if 'PROMPT_FOR_CONFIRM="no"' in success:
         return_value.append('interactive boot disabled')
         return_value.append('PASS')
@@ -1187,7 +1210,7 @@ def _1_4_4_ind():
         return_value.append('interactive boot not checked')
         return_value.append('CHEK')
         return_value.append(
-            'sudo grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot returned the following\n' + success + '\n' + error)
+            'grep "^PROMPT_FOR_CONFIRM=" /etc/sysconfig/boot returned the following\n' + success + '\n' + error)
     return return_value
 
 
@@ -1226,7 +1249,7 @@ def _1_5_1_ind():
 
 def _1_5_2_ind():
     return_value = list()
-    success, error = check("sudo journalctl | grep 'protection: active'")
+    success, error = check("journalctl | grep 'protection: active'")
     if success:
         return_value.append('XD/NX support is enabled')
         return_value.append('PASS')
@@ -1280,7 +1303,7 @@ def _1_5_4_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s prelink')
+    success, error = check('dpkg -s prelink')
     if not success:
         return_value.append('prelink is not installed')
         return_value.append('PASS')
@@ -1288,7 +1311,7 @@ def _1_5_4_ind():
     else:
         return_value.append('prelink is installed')
         return_value.append('FAIL')
-        return_value.append('sudo dpkg -s prelink returned\n' + success)
+        return_value.append('dpkg -s prelink returned\n' + success)
     return return_value
 
 
@@ -1299,14 +1322,14 @@ def _1_6_1_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s libselinux1')
+    success, error = check('dpkg -s libselinux1')
     if success:
         return_value.append('SELinux is installed')
         return_value.append('PASS')
         return_value.append(success)
     else:
         result_error = error + '\n'
-        success, error = check('sudo dpkg -s apparmor')
+        success, error = check('dpkg -s apparmor')
         if success:
             return_value.append('AppArmor is installed')
             return_value.append('PASS')
@@ -1359,7 +1382,7 @@ def _1_6_2_2_ind():
         result_success += success + '\n'
     else:
         result_error += error + '\n'
-    success, error = check('sudo sestatus')
+    success, error = check('sestatus')
     if 'SELinux status: enabled' in success and 'Current mode: enforcing' in success and 'Mode from config file: enforcing' in success:
         result_success += success + '\n'
     else:
@@ -1385,7 +1408,7 @@ def _1_6_2_3_ind():
         result_success += success + '\n'
     else:
         result_error += success + '\n' + error + '\n'
-    success, error = check('sudo sestatus')
+    success, error = check('sestatus')
     if 'Policy from config file: targeted' in success or 'Policy from config file: mls' in success:
         result_success += success + '\n'
     else:
@@ -1409,7 +1432,7 @@ def _1_6_2_4_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s setroubleshoot')
+    success, error = check('dpkg -s setroubleshoot')
     if not success:
         return_value.append('SETroubleshoot is not installed')
         return_value.append('PASS')
@@ -1417,7 +1440,7 @@ def _1_6_2_4_ind():
     else:
         return_value.append('SETroubleshoot is installed')
         return_value.append('FAIL')
-        return_value.append('sudo dpkg -s setroubleshoot returned\n' + success)
+        return_value.append('dpkg -s setroubleshoot returned\n' + success)
     return return_value
 
 
@@ -1428,7 +1451,7 @@ def _1_6_2_5_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s mcstrans')
+    success, error = check('dpkg -s mcstrans')
     if not success:
         return_value.append('mcstrans is not installed')
         return_value.append('PASS')
@@ -1436,7 +1459,7 @@ def _1_6_2_5_ind():
     else:
         return_value.append('mcstrans is installed')
         return_value.append('FAIL')
-        return_value.append('sudo dpkg -s mcstrans returned\n' + success)
+        return_value.append('dpkg -s mcstrans returned\n' + success)
     return return_value
 
 
@@ -1489,7 +1512,7 @@ def _1_6_3_1_ind():
 
 def _1_6_3_2_ind():
     return_value = list()
-    success, error = check('sudo apparmor_status')
+    success, error = check('apparmor_status')
     if success:
         loaded_profiles = [
             p for p in success.splitlines() if 'profiles are loaded.' in p]
@@ -1704,7 +1727,7 @@ def _1_7_2_ind():
 
 def _1_8_ind():
     return_value = list()
-    success, error = check('sudo apt-get -s upgrade')
+    success, error = check('apt-get -s upgrade')
     if success:
         if '0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.' in success:
             return_value.append('software installed properly')
@@ -1718,7 +1741,7 @@ def _1_8_ind():
         return_value.append('software state not checked')
         return_value.append('CHEK')
         return_value.append(
-            'sudo apt-get -s upgrade did not return anything\n' + error)
+            'apt-get -s upgrade did not return anything\n' + error)
     return return_value
 
 
@@ -1902,7 +1925,7 @@ def _2_1_10_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep xinetd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('xinetd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -1930,14 +1953,14 @@ def _2_2_1_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s ntp')
+    success, error = check('dpkg -s ntp')
     if 'Status: install ok installed' in success:
         return_value.append('ntp is installed')
         return_value.append('PASS')
         return_value.append(success)
     else:
         result_error = success + '\n' + error
-        success, error = check('sudo dpkg -s chrony')
+        success, error = check('dpkg -s chrony')
         if 'Status: install ok installed' in success:
             return_value.append('chrony is installed')
             return_value.append('PASS')
@@ -2066,7 +2089,7 @@ def _2_2_2_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -l xserver-xorg*')
+    success, error = check('dpkg -l xserver-xorg*')
     if success:
         return_value.append('X Window System installed')
         return_value.append('FAIL')
@@ -2091,7 +2114,7 @@ def _2_2_3_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep avahi-daemon')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('avahi-daemon is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2125,7 +2148,7 @@ def _2_2_4_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep cups')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('cups is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2159,7 +2182,7 @@ def _2_2_5_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep dhcpd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('dhcpd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2193,7 +2216,7 @@ def _2_2_6_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep slapd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('slapd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2228,7 +2251,7 @@ def _2_2_7_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep nfs')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     nfs_enabled = False
                     result_success += '\n' + success
                 else:
@@ -2254,7 +2277,7 @@ def _2_2_7_ind():
                 result_success += '\n' + success
                 success, error = check('ls /etc/rc*.d | grep rpcbind')
                 if success:
-                    if not any(s for s in success if s.startswith('S')):
+                    if not any(s for s in success.splitlines() if s.startswith('S')):
                         return_value.append('nfs and rpcbind are disabled')
                         return_value.append('PASS')
                         return_value.append(result_success + '\n' + success)
@@ -2288,7 +2311,7 @@ def _2_2_8_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep named')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('named is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2322,7 +2345,7 @@ def _2_2_9_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep vsftpd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('vsftpd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2356,7 +2379,7 @@ def _2_2_10_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep httpd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('httpd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2390,7 +2413,7 @@ def _2_2_11_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep dovecot')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('dovecot is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2424,7 +2447,7 @@ def _2_2_12_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep smb')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('smb is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2458,7 +2481,7 @@ def _2_2_13_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep squid')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('squid is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2492,7 +2515,7 @@ def _2_2_14_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep snmpd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('snmpd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2543,7 +2566,7 @@ def _2_2_16_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep rsyncd')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('rsyncd is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2577,7 +2600,7 @@ def _2_2_17_ind():
             result_success = success
             success, error = check('ls /etc/rc*.d | grep ypserv')
             if success:
-                if not any(s for s in success if s.startswith('S')):
+                if not any(s for s in success.splitlines() if s.startswith('S')):
                     return_value.append('ypserv is disabled')
                     return_value.append('PASS')
                     return_value.append(result_success + '\n' + success)
@@ -2605,7 +2628,7 @@ def _2_3_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s ypbind')
+    success, error = check('dpkg -s ypbind')
     if 'Status: install ok installed' in success:
         return_value.append('NIS Client installed')
         return_value.append('FAIL')
@@ -2624,7 +2647,7 @@ def _2_3_2_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s rsh')
+    success, error = check('dpkg -s rsh')
     if 'Status: install ok installed' in success:
         return_value.append('rsh client installed')
         return_value.append('FAIL')
@@ -2643,7 +2666,7 @@ def _2_3_3_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s talk')
+    success, error = check('dpkg -s talk')
     if 'Status: install ok installed' in success:
         return_value.append('talk client installed')
         return_value.append('FAIL')
@@ -2662,7 +2685,7 @@ def _2_3_4_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s telnet')
+    success, error = check('dpkg -s telnet')
     if 'Status: install ok installed' in success:
         return_value.append('telnet client installed')
         return_value.append('FAIL')
@@ -2681,13 +2704,13 @@ def _2_3_5_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s openldap-clients')
+    success, error = check('dpkg -s openldap-clients')
     if error:
         result_error = error
-        success, error = check('sudo dpkg -s openldap2-client')
+        success, error = check('dpkg -s openldap2-client')
         if error:
             result_error += '\n' + error
-            success, error = check('sudo dpkg -s ldap-utils')
+            success, error = check('dpkg -s ldap-utils')
             if error:
                 return_value.append('LDAP Client not installed')
                 return_value.append('PASS')
@@ -3180,7 +3203,7 @@ def _3_3_1_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s tcpd')
+    success, error = check('dpkg -s tcpd')
     if 'Status: install ok installed' in success:
         return_value.append('TCP Wrappers installed')
         return_value.append('PASS')
@@ -3397,7 +3420,7 @@ def _3_5_1_1_ind():
         'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
     result_success = success if success else ''
     result_error = error if error else ''
-    success, error = check('sudo ip6tables -L | grep Chain')
+    success, error = check('ip6tables -L | grep Chain')
     if success:
         if all('policy DROP' in s or 'policy REJECT' in s for s in success.splitlines()):
             return_value.append('IPv6 default deny policy')
@@ -3429,7 +3452,7 @@ def _3_5_1_2_ind():
         'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
     result_success = success if success else ''
     result_error = error if error else ''
-    success, error = check('sudo ip6tables -L INPUT -v -n')
+    success, error = check('ip6tables -L INPUT -v -n')
     if success:
         loopbacks = [s for s in success.splitlines()]
         flag = 1
@@ -3534,7 +3557,7 @@ def _3_5_1_2_ind():
                 success + '\nFollowing uses ipv6\n' + result_success)
         if not flag:
             result_success += '\nConfig of IPv6 Input table\n' + success + '\n'
-            success, error = check('sudo ip6tables -L OUTPUT -v -n')
+            success, error = check('ip6tables -L OUTPUT -v -n')
             if success:
                 loopbacks = [s for s in success.splitlines()]
                 if len(loopbacks) > 2:
@@ -3628,7 +3651,7 @@ def _3_5_1_3_ind():
         'grep "^\s*linux" /boot/grub*/grub.cfg | grep -v ipv6.disable=1')
     result_success = success if success else ''
     result_error = error if error else ''
-    success, error = check('sudo ip6tables -L -v -n')
+    success, error = check('ip6tables -L -v -n')
     if success:
         if len(success.splitlines()) > 8:
             return_value.append('IPv6 Table contains config')
@@ -3666,7 +3689,7 @@ def _3_5_1_4_ind():
                       for s in success.splitlines() if s.split()[0] != 'Netid']
         if len(open_ports):
             result_success = success
-            success, error = check('sudo ip6tables -L INPUT -v -n')
+            success, error = check('ip6tables -L INPUT -v -n')
             if success:
                 rules = [s.split()[0] for s in success.splitlines() if s.split()[0] != 'Chain' and s.split()[
                     0] != 'pkts' and s.split()[2] not in ['ACCEPT', 'DROP', 'QUEUE', 'RETURN']]
@@ -3706,7 +3729,7 @@ def _3_5_1_4_ind():
 
 def _3_5_2_1_ind():
     return_value = list()
-    success, error = check('sudo iptables -L | grep Chain')
+    success, error = check('iptables -L | grep Chain')
     if success:
         if all('policy DROP' in s or 'policy REJECT' in s for s in success.splitlines()):
             return_value.append('default deny firewall policy')
@@ -3725,7 +3748,7 @@ def _3_5_2_1_ind():
 
 def _3_5_2_2_ind():
     return_value = list()
-    success, error = check('sudo iptables -L INPUT -v -n')
+    success, error = check('iptables -L INPUT -v -n')
     if success:
         loopbacks = [s for s in success.splitlines()]
         flag = 1
@@ -3818,7 +3841,7 @@ def _3_5_2_2_ind():
             return_value.append(success)
         if not flag:
             result_success = '\nConfig of firewall Input table\n' + success + '\n'
-            success, error = check('sudo iptables -L OUTPUT -v -n')
+            success, error = check('iptables -L OUTPUT -v -n')
             if success:
                 loopbacks = [s for s in success.splitlines()]
                 if len(loopbacks) > 2:
@@ -3891,7 +3914,7 @@ def _3_5_2_2_ind():
 
 def _3_5_2_3_ind():
     return_value = list()
-    success, error = check('sudo iptables -L -v -n')
+    success, error = check('iptables -L -v -n')
     if success:
         if len(success.splitlines()) > 8:
             return_value.append('iptables contains config')
@@ -3917,7 +3940,7 @@ def _3_5_2_4_ind():
                       for s in success.splitlines() if s.split()[0] != 'Netid']
         if len(open_ports):
             result_success = success
-            success, error = check('sudo iptables -L INPUT -v -n')
+            success, error = check('iptables -L INPUT -v -n')
             if success:
                 rules = [s.split()[0] for s in success.splitlines() if s.split()[0] != 'Chain' and s.split()[
                     0] != 'pkts' and s.split()[2] not in ['ACCEPT', 'DROP', 'QUEUE', 'RETURN']]
@@ -3954,7 +3977,7 @@ def _3_5_3_ind():
     return_value.append('CHEK')
     return_value.append('Distribution was not specified')
     return return_value
-    success, error = check('sudo dpkg -s iptables')
+    success, error = check('dpkg -s iptables')
     if 'Status: install ok installed' in success:
         return_value.append('iptables installed')
         return_value.append('PASS')
@@ -4006,6 +4029,695 @@ def _3_7_ind():
         return_value.append('IPv6 disabled')
         return_value.append('PASS')
         return_value.append(error)
+    return return_value
+
+
+def _4_1_1_1_ind():
+    return_value = list()
+    success, error = check(
+        'grep max_log_file /etc/audit/auditd.conf')
+    if success:
+        return_value.append('audit log storage size is configured')
+        return_value.append('PASS')
+        return_value.append(
+            'Ensure output is in compliance with site policy\n' + success)
+    else:
+        return_value.append('audit log storage size not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_1_1_2_ind():
+    return_value = list()
+    success, error = check(
+        'grep space_left_action /etc/audit/auditd.conf')
+    if success:
+        result_success = success + '\n'
+        success, error = check('grep action_mail_acct /etc/audit/auditd.conf')
+        if success:
+            result_success = success + '\n'
+            success, error = check(
+                'grep admin_space_left_action /etc/audit/auditd.conf')
+            if success:
+                return_value.append('system disabled when audit logs full')
+                return_value.append('PASS')
+                return_value.append(result_success + success)
+            else:
+                return_value.append('admin_space_left_action not set')
+                return_value.append('FAIL')
+                return_value.append(
+                    'grep admin_space_left_action /etc/audit/auditd.conf returned the following\n' + error)
+        else:
+            return_value.append('action_mail_acct not set')
+            return_value.append('FAIL')
+            return_value.append(
+                'grep action_mail_acct /etc/audit/auditd.conf returned the following\n' + error)
+    else:
+        return_value.append('system not disabled when audit logs full')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_1_1_3_ind():
+    return_value = list()
+    success, error = check(
+        'grep max_log_file_action /etc/audit/auditd.conf')
+    if success:
+        if 'max_log_file_action = keep_logs' in success:
+            return_value.append('audit logs not automatically deleted')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('audit logs automatically deleted')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('audit log file action not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+# distro specific
+def _4_1_2_ind():
+    return_value = list()
+    return_value.append('autitd not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('dpkg -s auditd audispd-plugins')
+    if all('Status: install ok installed' in s for s in success.splitlines()):
+        return_value.append('auditd is installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('auditd not installed')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_1_3_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled auditd')
+    if 'enabled' in success:
+        result_success = success
+        success, error = check('ls /etc/rc*.d | grep auditd')
+        if success:
+            runlevel02 = [s for s in success.splitlines()
+                          if s.startswith('S02')]
+            runlevel03 = [s for s in success.splitlines()
+                          if s.startswith('S03')]
+            runlevel04 = [s for s in success.splitlines()
+                          if s.startswith('S04')]
+            runlevel05 = [s for s in success.splitlines()
+                          if s.startswith('S05')]
+            if runlevel02:
+                if runlevel03:
+                    if runlevel04:
+                        if runlevel05:
+                            return_value.append('auditd service is enabled')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'auditd runlevel S05 not found')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_success + '\nls /etc/rc*.d | grep auditd returned the following\n' + success)
+                    else:
+                        return_value.append('auditd runlevel S04 not found')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            result_success + '\nls /etc/rc*.d | grep auditd returned the following\n' + success)
+                else:
+                    return_value.append('auditd runlevel S03 not found')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep auditd returned the following\n' + success)
+            else:
+                return_value.append('auditd runlevel S02 not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\nls /etc/rc*.d | grep auditd returned the following\n' + success)
+        else:
+            return_value.append('auditd is disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                result_success + '\nls /etc/rc*.d | grep auditd returned the following\n' + error)
+    else:
+        return_value.append('auditd not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'systemctl is-enabled auditd returned the following\n' + error)
+    return return_value
+
+
+# bootloader specific
+def _4_1_4_ind():
+    return_value = list()
+    success, error = check('grep "^\s*linux" /boot/grub*/grub.cfg')
+    if success:
+        if all('audit=1' in s for s in success.splitlines()):
+            return_value.append('processes prior to auditd audited')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('processes prior to auditd not audited')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        result_error = error + '\n'
+        success, error = check('grep "^\s*kernel" /boot/grub/menu.lst')
+        if success:
+            if all('audit=1' in s for s in success.splitlines()):
+                return_value.append('processes prior to auditd audited')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append('processes prior to auditd not audited')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('process prior to auditd not found')
+            return_value.append('CHEK')
+            return_value.append(result_error + '\n' + error)
+    return return_value
+
+
+def _4_1_5_ind():
+    return_value = list()
+    success, error = check('grep time-change /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep time-change')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change' in result_success or '-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change' in result_success:
+            if '-a always,exit -F arch=b64 -S clock_settime -k time-change' in result_success or '-a always,exit -F arch=b32 -S clock_settime -k time-change' in result_success:
+                if '-w /etc/localtime -p wa -k time-change' in result_success:
+                    return_value.append('events modifying date and time coll')
+                    return_value.append('PASS')
+                    return_value.append(result_success)
+                else:
+                    return_value.append('localtime time-change not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('clock_settime not collected')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('adjtimex and settimeofday not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('events modifying date and time not coll')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_6_ind():
+    return_value = list()
+    success, error = check('grep identity /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep identity')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /etc/group -p wa -k identity' in result_success:
+            if '-w /etc/passwd -p wa -k identity' in result_success:
+                if '-w /etc/gshadow -p wa -k identity' in result_success:
+                    if '-w /etc/shadow -p wa -k identity' in result_success:
+                        if '-w /etc/security/opasswd -p wa -k identity' in result_success:
+                            return_value.append(
+                                'events modifying u/g info collected')
+                            return_value.append('PASS')
+                            return_value.append(result_success)
+                        else:
+                            return_value.append(
+                                'opasswd identity events not coll')
+                            return_value.append('FAIL')
+                            return_value.append(result_success)
+                    else:
+                        return_value.append('shadow identity events not coll')
+                        return_value.append('FAIL')
+                        return_value.append(result_success)
+                else:
+                    return_value.append('gshadow identity events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('passwd identity events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('group identity events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('events modifying u/g info not coll')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_7_ind():
+    return_value = list()
+    success, error = check('grep system-locale /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grepsystem-locale')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale' in result_success or '-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale' in result_success:
+            if '-w /etc/issue -p wa -k system-locale' in result_success:
+                if '-w /etc/issue.net -p wa -k system-locale' in result_success:
+                    if '-w /etc/hosts -p wa -k system-locale' in result_success:
+                        if '-w /etc/sysconfig/network -p wa -k system-locale' in result_success:
+                            return_value.append(
+                                "events modifying system's n/w env coll")
+                            return_value.append('PASS')
+                            return_value.append(result_success)
+                        else:
+                            return_value.append(
+                                'network system-locale events not coll')
+                            return_value.append('FAIL')
+                            return_value.append(result_success)
+                    else:
+                        return_value.append(
+                            'hosts system-locale events not coll')
+                        return_value.append('FAIL')
+                        return_value.append(result_success)
+                else:
+                    return_value.append(
+                        'issue.net system-locale events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('issue system-locale events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('system-locale name change not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append("events modifying system's n/w env not coll")
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_8_ind():
+    return_value = list()
+    success, error = check('grep MAC-policy /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep MAC-policy')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /etc/selinux/ -p wa -k MAC-policy' in result_success or '-w /etc/apparmor/ -p wa -k MAC-policy' in result_success:
+            if '-w /usr/share/selinux/ -p wa -k MAC-policy' in result_success or '-w /etc/apparmor.d/ -p wa -k MAC-policy' in result_success:
+                return_value.append("events modifying system's MAC coll")
+                return_value.append('PASS')
+                return_value.append(result_success)
+            else:
+                return_value.append('dir MAC-policy events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('etc MAC-policy events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append("events modifying system's MAC not coll")
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_9_ind():
+    return_value = list()
+    success, error = check('grep logins /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep logins')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /var/log/faillog -p wa -k logins' in result_success:
+            if '-w /var/log/lastlog -p wa -k logins' in result_success:
+                if '-w /var/log/tallylog -p wa -k logins' in result_success:
+                    return_value.append(
+                        'login and logout events are collected')
+                    return_value.append('PASS')
+                    return_value.append(result_success)
+                else:
+                    return_value.append('tallylog logins events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('lastlog logins events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('faillog logins events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('login and logout events not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_10_ind():
+    return_value = list()
+    success, error = check(
+        "grep -E '(session|logins)' /etc/audit/rules.d/*.rules")
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check("auditctl -l | grep -E '(session|logins)'")
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /var/run/utmp -p wa -k session' in result_success:
+            if '-w /var/log/wtmp -p wa -k logins' in result_success:
+                if '-w /var/log/btmp -p wa -k logins' in result_success:
+                    return_value.append('session initiation info is collected')
+                    return_value.append('PASS')
+                    return_value.append(result_success)
+                else:
+                    return_value.append('btmp logins events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('wtmp logins events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('utmp session events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('session initiation info not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_11_ind():
+    return_value = list()
+    success, error = check('grep perm_mod /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep perm_mod')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success:
+            if '-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success:
+                if '-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod' in result_success:
+                    if '-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=-1 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=-1 -k perm_mod' in result_success:
+                        if '-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=-1 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=-1 -k perm_mod' in result_success:
+                            if '-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=-1 -k perm_mod' in result_success or '-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=-1 -k perm_mod' in result_success:
+                                return_value.append(
+                                    'access control mod events collected')
+                                return_value.append('PASS')
+                                return_value.append(result_success)
+                            else:
+                                return_value.append(
+                                    'setxattr auditctl events not coll')
+                                return_value.append('FAIL')
+                                return_value.append(result_success)
+                        else:
+                            return_value.append(
+                                'chown auditctl events not coll')
+                            return_value.append('FAIL')
+                            return_value.append(result_success)
+                    else:
+                        return_value.append('chmod auditctl events not coll')
+                        return_value.append('FAIL')
+                        return_value.append(result_success)
+                else:
+                    return_value.append('setxattr *.rules events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('chown *.rules events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('chmod *.rules events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('access control mod events not coll')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_12_ind():
+    return_value = list()
+    success, error = check('grep access /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep access')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access' in result_success or '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access' in result_success:
+            if '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access' in result_success or '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access' in result_success:
+                if '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=-1 -k access' in result_success or '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=-1 -k access' in result_success:
+                    if '-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=-1 -k access' in result_success or '-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=-1 -k access' in result_success:
+                        return_value.append(
+                            'unauthorized file access collected')
+                        return_value.append('PASS')
+                        return_value.append(result_success)
+                    else:
+                        return_value.append('EPERM auditctl events not coll')
+                        return_value.append('FAIL')
+                        return_value.append(result_success)
+                else:
+                    return_value.append('EACCES auditctl events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('EPERM *.rules events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('EACCES *.rules events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('unauthorized file access not coll')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_13_ind():
+    return_value = list()
+    success, error = check('mount | grep -e "/dev/sd"')
+    partitions = [s.split()[0] for s in success.splitlines()]
+    if len(partitions):
+        result_success = 'Following partitions were found\n' + success
+        flag = 0
+        for p in partitions:
+            success, error = check(
+                "find " + p + " -xdev \( -perm -4000 -o -perm -2000 \) -type f | awk '{print \"-a always,exit -F path=\" $1 \" -F perm=x -F auid>=500 -F auid!=4294967295 -k privileged\" }'")
+            result_success += success if success else error + \
+                '\nABOVE was found on ' + p + '\n'
+            flag += 1 if success else 0
+        if not flag:
+            return_value.append('privileged commands not collected')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+        else:
+            return_value.append('privileged commands collected')
+            return_value.append('PASS')
+            return_value.append(
+                'Verify all resulting lines are a .rules file in /etc/audit/rules.d/ and the output of auditctl -l AND .rules file output should be auid!=-1 not auid!=4294967295\n' + result_success)
+    else:
+        return_value.append('no partitions found')
+        return_value.append('CHEK')
+        return_value.append(success + error)
+    return return_value
+
+
+def _4_1_14_ind():
+    return_value = list()
+    success, error = check('grep mounts /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep mounts')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=4294967295 -k mounts' in result_success or '-a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k mounts' in result_success:
+            if '-a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=-1 -k mounts' in result_success or '-a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=-1 -k mounts' in result_success:
+                return_value.append('successful fs mounts collected')
+                return_value.append('PASS')
+                return_value.append(result_success)
+            else:
+                return_value.append('mount auditctl events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('mount *.rules events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('successful fs mounts not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_15_ind():
+    return_value = list()
+    success, error = check('grep delete /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep delete')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete' in result_success or '-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete' in result_success:
+            if '-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=-1 -k delete' in result_success or '-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=-1 -k delete' in result_success:
+                return_value.append('user file deletion events collected')
+                return_value.append('PASS')
+                return_value.append(result_success)
+            else:
+                return_value.append('unlink, rename auditctl events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('unlink, rename *.rules events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('user file deletion events not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_16_ind():
+    return_value = list()
+    success, error = check('grep scope /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep scope')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /etc/sudoers -p wa -k scope' in result_success:
+            if '-w /etc/sudoers.d/ -p wa -k scope' in result_success:
+                return_value.append('changes to sudoers collected')
+                return_value.append('PASS')
+                return_value.append(result_success)
+            else:
+                return_value.append('directory scope events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('sudoers scope events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('changes to sudoers not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_17_ind():
+    return_value = list()
+    success, error = check('grep actions /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep actions')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-w /var/log/sudo.log -p wa -k actions' in result_success:
+            return_value.append('sudolog collected')
+            return_value.append('PASS')
+            return_value.append(result_success)
+        else:
+            return_value.append('sudo.log actions events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('sudolog not collected')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_18_ind():
+    return_value = list()
+    success, error = check('grep modules /etc/audit/rules.d/*.rules')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('auditctl -l | grep modules')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        if '-a always,exit -F arch=b32 -S init_module -S delete_module -k modules' in result_success or '-a always,exit -F arch=b64 -S init_module -S delete_module-k modules' in result_success:
+            if '-w /sbin/insmod -p x -k modules' in result_success:
+                if '-w /sbin/rmmod -p x -k modules' in result_success:
+                    if '-w /sbin/modprobe -p x -k modules' in result_success:
+                        return_value.append('kernel module monitored')
+                        return_value.append('PASS')
+                        return_value.append(result_success)
+                    else:
+                        return_value.append('modprobe modules events not coll')
+                        return_value.append('FAIL')
+                        return_value.append(result_success)
+                else:
+                    return_value.append('rmmod modules events not coll')
+                    return_value.append('FAIL')
+                    return_value.append(result_success)
+            else:
+                return_value.append('insmod modules events not coll')
+                return_value.append('FAIL')
+                return_value.append(result_success)
+        else:
+            return_value.append('modules *.rules events not coll')
+            return_value.append('FAIL')
+            return_value.append(result_success)
+    else:
+        return_value.append('kernel module not monitored')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_1_19_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^\s*[^#]" /etc/audit/rules.d/*.rules | tail -1')
+    if '-e 2' in success:
+        return_value.append('audit configuration immutable')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('audit configuration is mutable')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
     return return_value
 
 
@@ -7617,33 +8329,46 @@ def _1_1_23_ubu():
 
 
 # function to call necessary recommendation benchmarks
-# i (current benchmark number) and l (total benchmarks scored)
-# are only used when output is not required verbose-ly
-# i.e. to print progressBar
-def test(r, file_path, dist, i=None, l=None):
+def test(r, file_path, dist, verbosity, passd, faild, check, term_width):
+    """\nCall using recommendation number and distribution\n
+    Returns:\n
+        0 -> If the test FAILS or needs the auditor to CHECK the results\n
+        1 -> The test PASSES, but is NOT SCORED\n
+        2 -> The test PASSED and IS SCORED\n
+    Args:\n
+        r           - Required : recommendation number (String)\n
+        file_path   - Required : path to the corresponding SeBAz.csv file (String)\n
+        dist        - Required : distribution (String)\n
+        verbosity   - Required : whether result needs to be displayed on terminal or not (Boolean)\n
+        passd       - Required : enlighten manager counter object to denote PASSED results (Object)\n
+        faild       - Required : enlighten manager counter object to denote FAILED results (Object)\n
+        check       - Required : enlighten manager counter object to denote results to be CHECKED (Object)\n
+        term_width  - Required : width of the terminal as determined by manager (Int)\n
+    """
+    # test start time
     start = time()
-
+    # performing requested test
     return_value = eval('_' + r[0].replace('.', '_') + '_' + dist + '()')
-
     # return_score is 2 when test has passed (1) AND the test is scored (1)
     return_score = 0
     if 'PASS' == return_value[1] and r[1]:
         return_score = 2
+        passd.update()
+        if verbosity:
+            print_success(r[0], return_value[0], return_value[1], term_width)
     elif 'PASS' == return_value[1]:
         return_score = 1
-
-    # if verbose output is needed | else print progressBar
-    if i == None and l == None:
-        if r[1]:
-            print_success(r[0], return_value[0], return_value[1]) if return_score == 2 else print_fail(
-                r[0], return_value[0], return_value[1])
-        else:
-            print_neutral(r[0], return_value[
-                          0], return_value[1])
+        passd.update()
+        if verbosity:
+            print_neutral(r[0], return_value[0], return_value[1], term_width)
+    elif 'CHEK' == return_value[1]:
+        check.update()
+        if verbosity:
+            print_neutral(r[0], return_value[0], return_value[1], term_width)
     else:
-        printProgressBar(i, l, prefix='Progress:',
-                         suffix='Complete', autosize=True) if i == l else printProgressBar(i, l, prefix=r[0] + ' (' + str(i) + '/' + str(l) + ')',
-                                                                                           suffix='Complete', autosize=True)
+        faild.update()
+        if verbosity:
+            print_fail(r[0], return_value[0], return_value[1], term_width)
 
     # writing findings to .SeBAz file
     return_value.insert(0, r[0])
