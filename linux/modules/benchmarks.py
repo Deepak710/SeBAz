@@ -1,5 +1,5 @@
+from huepy import bold, red, green, yellow
 from subprocess import Popen, PIPE
-from termcolor import cprint
 from csv import writer
 from time import time
 from sys import exit
@@ -178,6 +178,26 @@ benchmark_ind = [
         'Ensure system administrator actions (sudolog) are collected'],
     ['4.1.18', 1, 2, 2, 'Ensure kernel module loading and unloading is collected'],
     ['4.1.19', 1, 2, 2, 'Ensure the audit configuration is immutable'],
+    ['4.2.1.1', 1, 1, 1, 'Ensure rsyslog is installed (distro specific)'],
+    ['4.2.1.2', 1, 1, 1, 'Ensure rsyslog Service is enabled'],
+    ['4.2.1.3', 0, 1, 1, 'Ensure logging is configured'],
+    ['4.2.1.4', 1, 1, 1, 'Ensure rsyslog default file permissions configured'],
+    ['4.2.1.5', 1, 1, 1, 'Ensure rsyslog is configured to send logs to a remote log host'],
+    ['4.2.1.6', 0, 1, 1,
+        'Ensure remote rsyslog messages are only accepted on designated log hosts'],
+    ['4.2.2.1', 1, 1, 1, 'Ensure journald is configured to send logs to rsyslog'],
+    ['4.2.2.2', 1, 1, 1, 'Ensure journald is configured to compress large log files'],
+    ['4.2.2.3', 1, 1, 1, 'Ensure journald is configured to write logfiles to persistent disk'],
+    ['4.2.3', 1, 1, 1, 'Ensure permissions on all logfiles are configured'],
+    ['4.3', 0, 1, 1, 'Ensure logrotate is configured'],
+    ['5.1.1', 1, 1, 1, 'Ensure cron daemon is enabled'],
+    ['5.1.2', 1, 1, 1, 'Ensure permissions on /etc/crontab are configured'],
+    ['5.1.3', 1, 1, 1, 'Ensure permissions on /etc/cron.hourly are configured'],
+    ['5.1.4', 1, 1, 1, 'Ensure permissions on /etc/cron.daily are configured'],
+    ['5.1.5', 1, 1, 1, 'Ensure permissions on /etc/cron.weekly are configured'],
+    ['5.1.6', 1, 1, 1, 'Ensure permissions on /etc/cron.monthly are configured'],
+    ['5.1.7', 1, 1, 1, 'Ensure permissions on /etc/cron.d are configured'],
+    ['5.1.8', 1, 1, 1, 'Ensure at/cron is restricted to authorized users'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -337,16 +357,16 @@ benchmark_ubu = [
 ]
 
 
-def print_success(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
-    r, x, p, width=len-16), 'green', attrs=['bold'])
+def print_success(r, x, p, len): print(bold(green('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16))))
 
 
-def print_fail(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
-    r, x, p, width=len-16), 'red', attrs=['bold'])
+def print_fail(r, x, p, len): print(bold(red('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16))))
 
 
-def print_neutral(r, x, p, len): cprint('{:<11}{:<{width}}{:>5}'.format(
-    r, x, p, width=len-16), 'yellow', attrs=['bold'])
+def print_neutral(r, x, p, len): print(bold(yellow('{:<11}{:<{width}}{:>5}'.format(
+    r, x, p, width=len-16))))
 
 
 # function to execute the check
@@ -4719,6 +4739,513 @@ def _4_1_19_ind():
         return_value.append('audit configuration is mutable')
         return_value.append('FAIL')
         return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _4_2_1_1_ind():
+    return_value = list()
+    return_value.append('rsyslog not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    success, error = check('dpkg -s rsyslog')
+    if 'Status: install ok installed' in success:
+        return_value.append('rsyslog is installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('rsyslog not installed')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_1_2_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled rsyslog')
+    if 'enabled' in success:
+        result_success = success
+        success, error = check('ls /etc/rc*.d | grep rsyslog')
+        if success:
+            runlevel02 = [s for s in success.splitlines()
+                          if s.startswith('S02')]
+            runlevel03 = [s for s in success.splitlines()
+                          if s.startswith('S03')]
+            runlevel04 = [s for s in success.splitlines()
+                          if s.startswith('S04')]
+            runlevel05 = [s for s in success.splitlines()
+                          if s.startswith('S05')]
+            if runlevel02:
+                if runlevel03:
+                    if runlevel04:
+                        if runlevel05:
+                            return_value.append('rsyslog service is enabled')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'rsyslog runlevel S05 not found')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_success + '\nls /etc/rc*.d | grep rsyslog returned the following\n' + success)
+                    else:
+                        return_value.append('rsyslog runlevel S04 not found')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            result_success + '\nls /etc/rc*.d | grep rsyslog returned the following\n' + success)
+                else:
+                    return_value.append('rsyslog runlevel S03 not found')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep rsyslog returned the following\n' + success)
+            else:
+                return_value.append('rsyslog runlevel S02 not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\nls /etc/rc*.d | grep rsyslog returned the following\n' + success)
+        else:
+            return_value.append('rsyslog is disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                result_success + '\nls /etc/rc*.d | grep rsyslog returned the following\n' + error)
+    else:
+        return_value.append('rsyslog not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'systemctl is-enabled rsyslog returned the following\n' + error)
+    return return_value
+
+
+def _4_2_1_3_ind():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('cat /etc/rsyslog.conf')
+    if success:
+        result_success += 'Review the contents of rsyslog.conf\n' + success
+    else:
+        result_error += error
+    success, error = check('cat /etc/rsyslog.d/*.conf')
+    if success:
+        result_success += 'Review the contents of rsyslog.d/*.conf\n' + success
+    else:
+        result_error += error
+    success, error = check('ls -l /var/log/')
+    if success:
+        result_success += 'verify that the log files are logging information\n' + success
+    else:
+        result_error += error
+    if len(result_success):
+        return_value.append('logging is configured')
+        return_value.append('CHEK')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('logging not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_2_1_4_ind():
+    return_value = list()
+    success, error = check(
+        'grep ^\$FileCreateMode /etc/rsyslog.conf /etc/rsyslog.d/*.conf')
+    if success:
+        allowed_perms = ['0640', '0600', '0440', '0400', '0240', '0200']
+        perms = [s.split(':')[1].split()[1] for s in success.splitlines()]
+        if all(p in allowed_perms for p in perms):
+            return_value.append('rsyslog file permissions configured')
+            return_value.append('PASS')
+            return_value.append(success + '\n' + error)
+        else:
+            return_value.append('rsyslog file permissions not configured')
+            return_value.append('PASS')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('rsyslog file permissions not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_1_5_ind():
+    return_value = list()
+    success, error = check(
+        'grep "^*.*[^I][^I]*@" /etc/rsyslog.conf /etc/rsyslog.d/*.conf')
+    if success:
+        return_value.append('rsyslog sends logs to remote log host')
+        return_value.append('PASS')
+        return_value.append(
+            'verify that logs are sent to central log host\n' + success + '\n' + error)
+    else:
+        return_value.append('rsyslog does not sends logs')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_1_6_ind():
+    return_value = list()
+    success, error = check(
+        "grep '$ModLoad imtcp' /etc/rsyslog.conf /etc/rsyslog.d/*.conf")
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check(
+        "grep '$InputTCPServerRun' /etc/rsyslog.conf /etc/rsyslog.d/*.conf")
+    result_success = success if success else ''
+    result_error = error if error else ''
+    if len(result_success):
+        return_value.append('rsyslog messages accepted designated')
+        return_value.append('PASS')
+        return_value.append(
+            'verify the resulting lines are uncommented on designated log hosts and commented or removed on all others\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('rsyslog messages not config')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_2_2_1_ind():
+    return_value = list()
+    success, error = check(
+        'grep -e ForwardToSyslog /etc/systemd/journald.conf')
+    if success:
+        if 'ForwardToSyslog=yes' in success and not success.startswith('#'):
+            return_value.append('journald sends logs to rsyslog')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('journald does not send logs to rsyslog')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('journald not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_2_2_ind():
+    return_value = list()
+    success, error = check('grep -e Compress /etc/systemd/journald.conf')
+    if success:
+        if 'Compress=yes' in success and not success.startswith('#'):
+            return_value.append('jjournald compresses large log files')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('journald not compress large log files')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('journald not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_2_3_ind():
+    return_value = list()
+    success, error = check('grep -e Storage /etc/systemd/journald.conf')
+    if success:
+        if 'Storage=persistent' in success and not success.startswith('#'):
+            return_value.append('journald writes logfiles to persistent disk')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('journald does not write logfiles')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('journald not configured')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_3_ind():
+    return_value = list()
+    success, error = check('find /var/log -type f -ls')
+    if success:
+        logs = [s.split()[2][-6:] for s in success.splitlines()]
+        if all(l in ['r-----', '------'] for l in logs):
+            return_value.append('all logfiles permissions configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('logfiles permissions not configured')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('logfiles permissions not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_3_ind():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('cat /etc/logrotate.conf')
+    if success:
+        result_success += 'verify logs in logrotate.conf are rotated according to site policy\n' + success
+    else:
+        result_error += error
+    success, error = check('cat /etc/logrotate.d/*')
+    if success:
+        result_success += 'verify logs in logrotate directory are rotated according to site policy\n' + success
+    else:
+        result_error += error
+    if len(result_success):
+        return_value.append('lograte is configured')
+        return_value.append('CHEK')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('lograte not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_1_1_ind():
+    return_value = list()
+    success, error = check('systemctl is-enabled crond')
+    if 'enabled' in success:
+        result_success = success
+        success, error = check('ls /etc/rc*.d | grep crond')
+        if success:
+            runlevel02 = [s for s in success.splitlines()
+                          if s.startswith('S02')]
+            runlevel03 = [s for s in success.splitlines()
+                          if s.startswith('S03')]
+            runlevel04 = [s for s in success.splitlines()
+                          if s.startswith('S04')]
+            runlevel05 = [s for s in success.splitlines()
+                          if s.startswith('S05')]
+            if runlevel02:
+                if runlevel03:
+                    if runlevel04:
+                        if runlevel05:
+                            return_value.append('cron daemon is enabled')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'cron daemon runlevel S05 not found')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_success + '\nls /etc/rc*.d | grep crond returned the following\n' + success)
+                    else:
+                        return_value.append(
+                            'cron daemon runlevel S04 not found')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            result_success + '\nls /etc/rc*.d | grep crond returned the following\n' + success)
+                else:
+                    return_value.append('cron daemon runlevel S03 not found')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\nls /etc/rc*.d | grep crond returned the following\n' + success)
+            else:
+                return_value.append('cron daemon runlevel S02 not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\nls /etc/rc*.d | grep crond returned the following\n' + success)
+        else:
+            return_value.append('cron daemon is disabled')
+            return_value.append('FAIL')
+            return_value.append(
+                result_success + '\nls /etc/rc*.d | grep crond returned the following\n' + error)
+    else:
+        return_value.append('cron daemon not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'systemctl is-enabled crond returned the following\n' + error)
+    return return_value
+
+
+def _5_1_2_ind():
+    return_value = list()
+    success, error = check('stat /etc/crontab')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/crontab configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/crontab not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/crontab not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/crontab returned the following\n' + error)
+    return return_value
+
+
+def _5_1_3_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.hourly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.hourly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.hourly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.hourly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.hourly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_4_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.daily')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.daily configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.daily not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.daily not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.daily returned the following\n' + error)
+    return return_value
+
+
+def _5_1_5_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.weekly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.weekly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.weekly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.weekly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.weekly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_6_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.monthly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.monthly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.monthly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.monthly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.monthly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_7_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.d')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.d configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.d not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.d not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.d returned the following\n' + error)
+    return return_value
+
+
+def _5_1_8_ind():
+    return_value = list()
+    success, error = check('stat /etc/cron.deny')
+    if 'No such file or directory' in error:
+        result_error = error
+        success, error = check('stat /etc/at.deny')
+        if 'No such file or directory' in error:
+            result_error += error
+            success, error = check('stat /etc/cron.allow')
+            if success:
+                go_perm = success.splitlines()[0].split()[1][-7:-1]
+                if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+                    result_success = success
+                    success, error = check('stat /etc/at.allow')
+                    if success:
+                        go_perm = success.splitlines()[0].split()[1][-7:-1]
+                        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+                            return_value.append(
+                                'at/cron restricted to authorized users')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_error + '\n' + result_success + '\n' + success)
+                        else:
+                            return_value.append('/etc/at.allow not configured')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_error + '\n' + result_success + '\n' + success + '\n' + error)
+                    else:
+                        return_value.append('/etc/at.allow not found')
+                        return_value.append('FAIL')
+                        return_value.append(result_error + '\n' + result_success +
+                                            '\nstat /etc/at.allow returned the following\n' + error)
+                else:
+                    return_value.append('/etc/cron.allow not configured')
+                    return_value.append('FAIL')
+                    return_value.append(result_error + '\n' + result_success +
+                                        '\nstat /etc/at.allow returned the following\n' + success)
+            else:
+                return_value.append('/etc/cron.allow not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_error + '\nstat /etc/at.allow returned the following\n' + error)
+        else:
+            return_value.append('/etc/at.deny exists')
+            return_value.append('FAIL')
+            return_value.append(
+                result_error + '\nstat /etc/at.deny returned the following\n' + error)
+    else:
+        return_value.append('/etc/cron.deny exists')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.deny returned the following\n' + error)
     return return_value
 
 

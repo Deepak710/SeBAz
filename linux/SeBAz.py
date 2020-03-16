@@ -1,12 +1,11 @@
 from modules.optionsParser import get_recommendations, disp_exp
 from modules.reportGenerator import createPDF, generatePDF
+from huepy import bold, red, green, yellow
 from modules.argumentParser import parser
 from time import time, gmtime, localtime
-from termcolor import cprint, colored
 from os import system, path, geteuid
 from modules.benchmarks import test
 from enlighten import get_manager
-from colorama import init
 from csv import writer
 from sys import exit
 
@@ -31,7 +30,7 @@ recommendations = get_recommendations(options)
 
 # displays the explanation of commands and exits
 if options.exp != None:
-    disp_exp(recommendations)
+    disp_exp(options)
 
 # generates report and exits
 if options.report != None:
@@ -42,8 +41,7 @@ if not geteuid() == 0:
     exit('\nPlease run SeBAz as root\n')
 
 
-init()
-cprint('Welcome to SeBAz', attrs=['bold'])
+print(bold('Welcome to SeBAz'))
 print('\nGive me a moment to calculate the prerequisites...\n')
 
 
@@ -62,22 +60,19 @@ passed = 0
 if options.verbose:
     # printing the legend for verbose output
     print('Done. Here\'s the legend for the test results:')
-    cprint('Green  Text indicates tests that have PASSED',
-           'green', attrs=['bold'])
-    cprint('Red    Text indicates tests that have FAILED',
-           'red', attrs=['bold'])
+    print(bold(green('Green  Text indicates tests that have PASSED')))
+    print(bold(red('Red    Text indicates tests that have FAILED')))
     if options.score == None:
-        cprint('Yellow Text indicates tests that are  NOT SCORED',
-               'yellow', attrs=['bold'])
+        print(bold(yellow('Yellow Text indicates tests that are  NOT SCORED')))
     print('\nPerforming ' + str(length) + ' tests now...\n')
 else:
     print('Done. Performing ' + str(length) + ' tests now...\n')
 
 # progressbar format
 bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
-    colored('pass', color='green', attrs=['bold']) + u':{count_0:{len_total}d} ' + \
-    colored('fail', color='red', attrs=['bold']) + u':{count_1:{len_total}d} ' + \
-    colored('chek', color='yellow', attrs=['bold']) + u':{count_2:{len_total}d} ' + \
+    bold(green('pass')) + u':{count_0:{len_total}d} ' + \
+    bold(red('fail')) + u':{count_1:{len_total}d} ' + \
+    bold(yellow('chek')) + u':{count_2:{len_total}d} ' + \
     u'[{elapsed}<{eta}, {rate:.1f}{unit_pad}{unit}/s]'
 manager = get_manager()
 passd = manager.counter(total=length, desc='Testing', unit='tests',

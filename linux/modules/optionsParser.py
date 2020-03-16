@@ -1,3 +1,4 @@
+from huepy import bold, green, yellow
 from sys import exit
 
 
@@ -58,7 +59,7 @@ def get_recommendations(options):
                 exit('Could not perform benchmarks on ' +
                      ' '.join(options.include) + ' with given conditions. Exiting.')
             else:
-                exit('Can\'t inlcude recommendations not defined in CIS Benchmark document.\nRun -h/--help or refer to the documentation.')
+                exit('Can\'t inlcude recommendations not defined in CIS Benchmark document.\nRun ./SeBAz -h/--help or refer to the documentation.')
         elif recommendations:
             recommendations = [r for r in recommendations if r[0] in include]
         else:
@@ -84,8 +85,10 @@ def get_recommendations(options):
 
 
 # displays the explanation necessary recommendations and exits
-def disp_exp(recommendations):
-    for b in recommendations:
+def disp_exp(options):
+    if all(i.startswith(('1', '2', '3', '4', '5', '6')) for i in options.exp):
+        options.include = options.exp
+    for b in get_recommendations(options):
         if b[2]:
             profileServer = 'Level ' + str(b[2]) + ' Server'
         else:
@@ -94,9 +97,12 @@ def disp_exp(recommendations):
             profileWorkstation = 'Level ' + str(b[3]) + ' Workstation'
         else:
             profileWorkstation = 'N/A'
-        print('{:<7}|{:<10}|{:<14}|{:<19}|'.format(
-            b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4])
-
+        exp = '{:<7}|{:<10}|{:<14}|{:<19}|'.format(
+            b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4]
+        if b[1]:
+            print(bold(green(exp)))
+        else:
+            print(bold(yellow(exp)))
     exit()
 
 
