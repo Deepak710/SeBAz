@@ -424,7 +424,7 @@ def createPDF(SeBAz):
     )
     recommendations = get_recommendations(option)
 
-    pdf = canvas.Canvas(SeBAz.split('.SeBAz.csv')[
+    pdf = canvas.Canvas(SeBAz.split('.csv')[
                         0] + '.pdf', pagesize=A4, bottomup=0, pageCompression=1)
     pdf.setTitle(SeBAz.split('.SeBAz.csv')[0])
     makeTitle(pdf, SeBAz_contents, setInfo(pdf, SeBAz_contents))
@@ -439,7 +439,7 @@ def createPDF(SeBAz):
 def generatePDF(SeBAz):
     from glob import glob
     for c in glob(SeBAz + '.SeBAz.csv'):
-        print('\nGenerating ' + c.split('.SeBAz.csv')[0] + '.pdf')
+        print('\nGenerating ' + c.split('.csv')[0] + '.pdf')
         createPDF(c)
         print('Done.\n')
     exit()

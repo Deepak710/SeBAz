@@ -45,7 +45,7 @@ print(bold('Welcome to SeBAz'))
 print('\nGive me a moment to calculate the prerequisites...\n')
 
 
-# writing test details and start time to .SeBAz file
+# writing test details and start time to .SeBAz.csv file
 file_path = path.dirname(path.abspath(__file__)) + '/' + \
     str(options.org) + '-' + str(options.unique) + '.SeBAz.csv'
 with open(file_path, 'w', newline='') as csvfile:
@@ -80,6 +80,9 @@ passd = manager.counter(total=length, desc='Testing', unit='tests',
 faild = passd.add_subcounter('bright_white')
 check = passd.add_subcounter('bright_white')
 
+# SeBAz.log file
+log_file = open(file_path.split('.csv')[0] + '.log', 'a')
+
 # calling the benchmark functions
 for i, r in enumerate(recommendations):
     passd.desc = '{rec:<8} {current:03d}/{total:03d}'.format(
@@ -87,12 +90,15 @@ for i, r in enumerate(recommendations):
     if i + 1 == length:
         passd.desc = '{:<16}'.format('Done')
     s = test(r, file_path, options.dist, options.verbose,
-             passd, faild, check, manager.width)
+             passd, faild, check, manager.width, log_file)
     if s:
         passed += 1
     if s == 2:
         score += 1
 manager.stop()
+
+# closing log file
+log_file.close()
 
 # calculating runtime
 duration = '\nPerformed ' + str(length) + ' tests in '
@@ -129,7 +135,8 @@ with open(file_path, 'a', newline='') as csvfile:
     csvwriter.writerow([result.splitlines()[1]])
 
 # Generating PDF
-print('\nGenerating ' + str(options.org) + '-' + str(options.unique) + '.pdf')
+print('\nGenerating ' + str(options.org) +
+      '-' + str(options.unique) + '.SeBAz.pdf')
 createPDF(file_path)
 print('Done.')
 

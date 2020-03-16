@@ -5,6 +5,10 @@ from time import time
 from sys import exit
 
 
+# dummy log_file variable
+log_file = ''
+
+
 """
 benchmark structure
 for b in benchmark_*:
@@ -198,6 +202,33 @@ benchmark_ind = [
     ['5.1.6', 1, 1, 1, 'Ensure permissions on /etc/cron.monthly are configured'],
     ['5.1.7', 1, 1, 1, 'Ensure permissions on /etc/cron.d are configured'],
     ['5.1.8', 1, 1, 1, 'Ensure at/cron is restricted to authorized users'],
+    ['5.2.1', 1, 1, 1, 'Ensure permissions on /etc/ssh/sshd_config are configured'],
+    ['5.2.2', 1, 1, 1, 'Ensure permissions on SSH private host key files are configured'],
+    ['5.2.3', 1, 1, 1, 'Ensure permissions on SSH public host key files are configured'],
+    ['5.2.4', 1, 1, 1, 'Ensure SSH Protocol is set to 2'],
+    ['5.2.5', 1, 1, 1, 'Ensure SSH LogLevel is appropriate'],
+    ['5.2.6', 1, 2, 1, 'Ensure SSH X11 forwarding is disabled'],
+    ['5.2.7', 1, 1, 1, 'Ensure SSH MaxAuthTries is set to 4 or less'],
+    ['5.2.8', 1, 1, 1, 'Ensure SSH IgnoreRhosts is enabled'],
+    ['5.2.9', 1, 1, 1, 'Ensure SSH HostbasedAuthentication is disabled'],
+    ['5.2.10', 1, 1, 1, 'Ensure SSH root login is disabled'],
+    ['5.2.11', 1, 1, 1, 'Ensure SSH PermitEmptyPasswords is disabled'],
+    ['5.2.12', 1, 1, 1, 'Ensure SSH PermitUserEnvironment is disabled'],
+    ['5.2.13', 1, 1, 1, 'Ensure only strong Ciphers are used'],
+    ['5.2.14', 1, 1, 1, 'Ensure only strong MAC algorithms are used'],
+    ['5.2.15', 1, 1, 1, 'Ensure only strong Key Exchange algorithms are used'],
+    ['5.2.16', 1, 1, 1, 'Ensure SSH Idle Timeout Interval is configured'],
+    ['5.2.17', 1, 1, 1, 'Ensure SSH LoginGraceTime is set to one minute or less'],
+    ['5.2.18', 1, 1, 1, 'Ensure SSH access is limited'],
+    ['5.2.19', 1, 1, 1, 'Ensure SSH warning banner is configured'],
+    ['5.2.20', 1, 1, 1, 'Ensure SSH PAM is enabled'],
+    ['5.2.21', 1, 2, 2, 'Ensure SSH AllowTcpForwarding is disabled'],
+    ['5.2.22', 1, 1, 1, 'Ensure SSH MaxStartups is configured'],
+    ['5.2.23', 1, 1, 1, 'Ensure SSH MaxSessions is set to 4 or less'],
+    ['5.3.1', 1, 1, 1, 'Ensure password creation requirements are configured'],
+    ['5.3.2', 0, 1, 1, 'Ensure lockout for failed password attempts is configured'],
+    ['5.3.3', 0, 1, 1, 'Ensure password reuse is limited'],
+    ['5.3.4', 0, 1, 1, 'Ensure password hashing algorithm is SHA-512'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -371,9 +402,14 @@ def print_neutral(r, x, p, len): print(bold(yellow('{:<11}{:<{width}}{:>5}'.form
 
 # function to execute the check
 def check(execute):
+    global log_file
+    log_file.write('Start:\t\t' + str(time()) +
+                   '\nCommand:\t' + execute + '\nOutput:\n')
     execute = Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE,
                     shell=True, executable='/bin/bash').communicate()
     execute = [e.decode('utf-8') for e in execute]
+    log_file.writelines(execute)
+    log_file.write('\nEnd:\t\t' + str(time()) + '\n\n\n')
     return execute
 
 
@@ -5249,6 +5285,534 @@ def _5_1_8_ind():
     return return_value
 
 
+def _5_2_1_ind():
+    return_value = list()
+    success, error = check('stat /etc/ssh/sshd_config')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/ssh/sshd_config configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on sshd_config not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/ssh/sshd_config not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/ssh/sshd_config returned the following\n' + error)
+    return return_value
+
+
+def _5_2_2_ind():
+    return_value = list()
+    success, error = check(
+        "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \;")
+    if success:
+        result_success = success
+        success, error = check(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \; | grep \"Access: (\"")
+        if all(s.split()[1][-7:-1] == '------' and 'Uid: (    0/    root)   Gid: (    0/    root)' in s for s in success.splitlines()):
+            return_value.append('SSH private host keys perms config')
+            return_value.append('PASS')
+            return_value.append(result_success)
+        else:
+            return_value.append('SSH private host keys perms not config')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('SSH private host keys not found')
+        return_value.append('FAIL')
+        return_value.append(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \;\n" + error)
+    return return_value
+
+
+def _5_2_3_ind():
+    return_value = list()
+    success, error = check(
+        "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \;")
+    if success:
+        result_success = success
+        success, error = check(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \; | grep \"Access: (\"")
+        if all(s.split()[1][-7:-1] in ['------', 'r--r--', 'r-----', '---r--'] and 'Uid: (    0/    root)   Gid: (    0/    root)' in s for s in success.splitlines()):
+            return_value.append('SSH public host keys perms config')
+            return_value.append('PASS')
+            return_value.append(result_success)
+        else:
+            return_value.append('SSH public host keys perms not config')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('SSH public host keys not found')
+        return_value.append('FAIL')
+        return_value.append(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \;\n" + error)
+    return return_value
+
+
+def _5_2_4_ind():
+    return_value = list()
+    success, error = check('grep ^Protocol /etc/ssh/sshd_config')
+    if 'Protocol 2' in success:
+        return_value.append('SSH Protocol set to 2')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH Protocol not 2')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep ^Protocol /etc/ssh/sshd_config returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_5_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep loglevel')
+    if 'LogLevel VERBOSE' in success or 'loglevel INFO' in success:
+        return_value.append('SSH LogLevel is appropriate')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH LogLevel not appropriate')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep loglevel returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_6_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep x11forwarding')
+    if 'X11Forwarding no' in success:
+        return_value.append('SSH X11 forwarding is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH X11 forwarding not disabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep x11forwarding returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_7_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep maxauthtries')
+    if success:
+        tries = success.split()[1]
+        if int(tries) <= 4:
+            return_value.append('SSH MaxAuthTries is set to ' + tries)
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH MaxAuthTries is more than 4')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH MaxAuthTries not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep maxauthtries returned the following\n' + error)
+    return return_value
+
+
+def _5_2_8_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep ignorerhosts')
+    if 'IgnoreRhosts yes' in success:
+        return_value.append('SSH IgnoreRhosts is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH IgnoreRhosts is disabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep ignorerhosts returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_9_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep hostbasedauthentication')
+    if 'HostbasedAuthentication no' in success:
+        return_value.append('SSH HBA is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH HBA is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep hostbasedauthentication returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_10_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep permitrootlogin')
+    if 'PermitRootLogin no' in success:
+        return_value.append('SSH root login is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH root login is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permitrootlogin returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_11_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep permitemptypasswords')
+    if 'PermitEmptyPasswords no' in success:
+        return_value.append('SSH PermitEmptyPasswords is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH PermitEmptyPasswords is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permitemptypasswords returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_12_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep permituserenvironment')
+    if 'PermitUserEnvironment no' in success:
+        return_value.append('SSH PermitUserEnvironment is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH PermitUserEnvironment is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permituserenvironment returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_13_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep ciphers')
+    weak_cyphers = ['3des-cbc', 'aes128-cbc', 'aes192-cbc', 'aes256-cbc', 'arcfour',
+                    'arcfour128', 'arcfour256', 'blowfish-cbc', 'cast128-cbc', 'rijndael-cbc@lysator.liu.se']
+    if success and not any(s in weak_cyphers for s in success.splitlines()):
+        return_value.append('SSH only strong Ciphers are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong Ciphers not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep ciphers returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_14_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep -i "MACs"')
+    weak_mac = ['hmac-md5', 'hmac-md5-96', 'hmac-ripemd160', 'hmac-sha1', 'hmac-sha1-96', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-md5-etm@openssh.com',
+                'hmac-md5-96-etm@openssh.com', 'hmac-ripemd160-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'hmac-sha1-96-etm@openssh.com', 'umac-64-etm@openssh.com', 'umac-128-etm@openssh.com']
+    if success and not any(s in weak_mac for s in success.splitlines()):
+        return_value.append('SSH only strong MAC algorithms are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong MAC algorithms not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep -i "MACs" returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_15_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep kexalgorithms')
+    weak_keys = ['diffie-hellman-group1-sha1',
+                 'diffie-hellman-group14-sha1', 'diffie-hellman-group-exchange-sha1']
+    if success and not any(s in weak_keys for s in success.splitlines()):
+        return_value.append('SSH only strong Key Exchange algorithms are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong Key Exchange algorithms not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep kexalgorithms returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_16_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep clientaliveinterval')
+    if success:
+        result_success = success
+        alive = success.split()[1]
+        if 1 <= int(alive) <= 300:
+            success, error = check('sshd -T | grep clientalivecountmax')
+            if success:
+                count = success.split()[1]
+                if int(count) <= 3:
+                    return_value.append('SSH Idle Timeout Interval configured')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('SSH ClientAliveCountMax more than 3')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('SSH ClientAliveCountMax not found')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('SSH ClientAliveInterval more than 300')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH ClientAliveInterval not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep clientaliveinterval returned the following\n' + error)
+    return return_value
+
+
+def _5_2_17_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep logingracetime')
+    if success:
+        grace = success.split()[1]
+        if 1 <= int(grace) <= 60:
+            return_value.append('SSH LoginGraceTime is ' + grace)
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH LoginGraceTime more than 60')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH LoginGraceTime not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep logingracetime returned the following\n' + error)
+    return return_value
+
+
+def _5_2_18_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep allowusers')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('sshd -T | grep allowgroups')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    success, error = check('sshd -T | grep denyusers')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    success, error = check('sshd -T | grep denygroups')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        return_value.append('SSH access is limited')
+        return_value.append('PASS')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('SSH access is not limited')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_2_19_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep banner')
+    if 'Banner /etc/issue.net' in success:
+        return_value.append('SSH warning banner is configured')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH warning banner is not configured')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep banner returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_20_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep -i usepam')
+    if 'usepam yes' in success:
+        return_value.append('SSH PAM is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH PAM is disabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep usepam returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_21_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep -i allowtcpforwarding')
+    if 'AllowTcpForwarding no' in success:
+        return_value.append('SSH AllowTcpForwarding is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH AllowTcpForwarding is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep -i allowtcpforwarding returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_22_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep -i maxstartups')
+    if success:
+        if 'maxstartups 10:30:60' in success:
+            return_value.append('SSH MaxStartups is configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH MaxStartups is configured')
+            return_value.append('CHEK')
+            return_value.append(
+                'verify that output of MaxStartups matches site policy\n' + success + error)
+    else:
+        return_value.append('SSH MaxStartups not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep -i maxstartups returned the following\n' + error)
+    return return_value
+
+
+def _5_2_23_ind():
+    return_value = list()
+    success, error = check('sshd -T | grep -i maxsessions')
+    if success:
+        sessions = success.split()[1]
+        if int(sessions) <= 4:
+            return_value.append('SSH MaxSessions is set to ' + sessions)
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH MaxSessions is set to ' + sessions)
+            return_value.append('CHEK')
+            return_value.append(
+                'verify that output of MaxSessions matches site policy\n' + success + error)
+    else:
+        return_value.append('SSH MaxSessions not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep -i maxsessions returned the following\n' + error)
+    return return_value
+
+
+def _5_3_1_ind():
+    return_value = list()
+    success, error = check(
+        'cat /etc/pam.d/common-password | grep -E "password required pam_cracklib.so"')
+    result_success = success if success else ''
+    result_error = error
+    success, error = check(
+        'cat /etc/pam.d/common-password | grep -E "password requisite pam_pwquality.so"')
+    result_success += success if success else ''
+    result_error += error
+    success, error = check(
+        'cat /etc/pam.d/system-auth | grep -E "password required pam_cracklib.so"')
+    result_success += success if success else ''
+    result_error += error
+    success, error = check(
+        'cat /etc/pam.d/system-auth | grep -E "password requisite pam_pwquality.so"')
+    result_success += success if success else ''
+    result_error += error
+    success, error = check('cat /etc/security/pwquality.conf')
+    result_success += success if success else ''
+    result_error += error
+    if len(result_success):
+        return_value.append('password creation req configured')
+        return_value.append('CHEK')
+        return_value.append(
+            'Verify password creation requirements conform to organization policy and minlen is 14 or more\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('password creation req not found')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_3_2_ind():
+    return_value = list()
+    success, error = check('cat /etc/pam.d/common-auth')
+    result_success = success if success else ''
+    result_error = error
+    success, error = check('cat /etc/pam.d/system-auth')
+    result_success += success if success else ''
+    result_error += error
+    success, error = check('cat /etc/pam.d/password-auth')
+    result_success += success if success else ''
+    result_error += error
+    if len(result_success):
+        return_value.append('failed password lockout configured')
+        return_value.append('CHEK')
+        return_value.append(
+            'Verify password lockouts are configured and pam_faillock.so lines should surround a pam_unix.so\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('failed password lockout not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_3_3_ind():
+    return_value = list()
+    success, error = check('cat /etc/pam.d/common-password | grep remember=')
+    result_success = success if success else ''
+    result_error = error
+    success, error = check('cat /etc/pam.d/system-auth | grep remember=')
+    result_success += success if success else ''
+    result_error += error
+    if len(result_success):
+        return_value.append('password reuse is limited')
+        return_value.append('CHEK')
+        return_value.append(
+            'Verify remembered password history is 5or more\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('password reuse not limited')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_3_4_ind():
+    return_value = list()
+    success, error = check('cat /etc/pam.d/common-password | grep sha512')
+    result_success = success if success else ''
+    result_error = error
+    success, error = check('cat /etc/pam.d/system-auth | grep sha512')
+    result_success += success if success else ''
+    result_error += error
+    success, error = check('cat /etc/pam.d/password-auth | grep sha512')
+    result_success += success if success else ''
+    result_error += error
+    if len(result_success):
+        return_value.append('password hashing algorithm is SHA-512')
+        return_value.append('CHEK')
+        return_value.append(
+            'Verify remembered password history is 5or more\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('password hashing algorithm not SHA-512')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
 """
 Definitions of Functions that perform CentOS checks against benchmarks
 return_value[0] = result
@@ -8857,7 +9421,7 @@ def _1_1_23_ubu():
 
 
 # function to call necessary recommendation benchmarks
-def test(r, file_path, dist, verbosity, passd, faild, check, term_width):
+def test(r, file_path, dist, verbosity, passd, faild, check, term_width, log):
     """\nCall using recommendation number and distribution\n
     Returns:\n
         0 -> If the test FAILS or needs the auditor to CHECK the results\n
@@ -8872,9 +9436,12 @@ def test(r, file_path, dist, verbosity, passd, faild, check, term_width):
         faild       - Required : enlighten manager counter object to denote FAILED results (Object)\n
         check       - Required : enlighten manager counter object to denote results to be CHECKED (Object)\n
         term_width  - Required : width of the terminal as determined by manager (Int)\n
+        log         - Required : file to log command execution (File Object)\n
     """
     # test start time
     start = time()
+    global log_file
+    log_file = log
     # performing requested test
     return_value = eval('_' + r[0].replace('.', '_') + '_' + dist + '()')
     # return_score is 2 when test has passed (1) AND the test is scored (1)
