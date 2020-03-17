@@ -229,6 +229,17 @@ benchmark_ind = [
     ['5.3.2', 0, 1, 1, 'Ensure lockout for failed password attempts is configured'],
     ['5.3.3', 0, 1, 1, 'Ensure password reuse is limited'],
     ['5.3.4', 0, 1, 1, 'Ensure password hashing algorithm is SHA-512'],
+    ['5.4.1.1', 1, 1, 1, 'Ensure password expiration is 365 days or less'],
+    ['5.4.1.2', 1, 1, 1, 'Ensure minimum days between password changes is 7 or more'],
+    ['5.4.1.3', 1, 1, 1, 'Ensure password expiration warning days is 7 or more'],
+    ['5.4.1.4', 1, 1, 1, 'Ensure inactive password lock is 30 days or less'],
+    ['5.4.1.5', 1, 1, 1, 'Ensure all users last password change date is in the past'],
+    ['5.4.2', 1, 1, 1, 'Ensure system accounts are secured'],
+    ['5.4.3', 1, 1, 1, 'Ensure default group for the root account is GID 0'],
+    ['5.4.4', 1, 1, 1, 'Ensure default user umask is 027 or more restrictive'],
+    ['5.4.5', 1, 2, 2, 'Ensure default user shell timeout is 900 seconds or less'],
+    ['5.5', 0, 1, 1, 'Ensure root login is restricted to system console'],
+    ['5.6', 1, 1, 1, 'Ensure access to the su command is restricted'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -5810,6 +5821,351 @@ def _5_3_4_ind():
         return_value.append('password hashing algorithm not SHA-512')
         return_value.append('FAIL')
         return_value.append(result_error)
+    return return_value
+
+
+def _5_4_1_1_ind():
+    return_value = list()
+    success, error = check('grep PASS_MAX_DAYS /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) <= 365 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                "grep -E '^[^:]+:[^!*]' /etc/shadow | cut -d: -f1,5")
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) <= 365 and int(d) != -1 for d in days):
+                    return_value.append(
+                        'password expiration less than 365 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+                else:
+                    return_value.append('user password expiration gt 365 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+            else:
+                return_value.append('users password expiration not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+        else:
+            return_value.append('password expiration not 365 days or less')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password expiration not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_MAX_DAYS /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_2_ind():
+    return_value = list()
+    success, error = check('grep PASS_MIN_DAYS /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) >= 7 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,4')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) >= 7 and int(d) != -1 for d in days):
+                    return_value.append('password changes gt 7 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+                else:
+                    return_value.append('user password changes lt 7 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+            else:
+                return_value.append('users password changes days not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+        else:
+            return_value.append('password changes not 7 days or more')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password changes days not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_MIN_DAYS /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_3_ind():
+    return_value = list()
+    success, error = check('grep PASS_WARN_AGE /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) >= 7 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,6')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) >= 7 and int(d) != -1 for d in days):
+                    return_value.append('password change warning gt 7 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_WARN_AGE\n' + success)
+                else:
+                    return_value.append(
+                        'user password change warning lt 7 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_WARN_AGE\n' + success)
+            else:
+                return_value.append('users password warn not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_WARN_AGE\n' + success)
+        else:
+            return_value.append('password expiration warning lt 7 days')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password expiration warning not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_WARN_AGE /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_4_ind():
+    return_value = list()
+    success, error = check('useradd -D | grep INACTIVE')
+    days = [d for d in [s.split('=')[1] for s in success.splitlines(
+    ) if not s.startswith('#')] if d.lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) <= 30 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'grep -E ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,7')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) <= 30 and int(d) != -1 for d in days):
+                    return_value.append(
+                        'inactive password lock less than 30 days')
+                    return_value.append('PASS')
+                    return_value.append('verify INACTIVE conforms to site policy\n' +
+                                        result_success + '\nUsers INACTIVE\n' + success)
+                else:
+                    return_value.append('user password lock more than 30 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify INACTIVE conforms to site policy\n' +
+                                        result_success + '\nUsers INACTIVE\n' + success)
+            else:
+                return_value.append('users password lock not found')
+                return_value.append('FAIL')
+                return_value.append('verify INACTIVE conforms to site policy\n' +
+                                    result_success + '\nUsers INACTIVE\n' + success)
+        else:
+            return_value.append('inactive password lock more than 30 days')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('inactive password lock not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'useradd -D | grep INACTIVE returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_5_ind():
+    return_value = list()
+    success, error = check(
+        "for usr in $(cut -d: -f1 /etc/shadow); do [[ $(chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo \"$usr :$(chage --list $usr | grep '^Last password change' | cut -d: -f2)\"; done")
+    if not success:
+        return_value.append('last password change date in past')
+        return_value.append('PASS')
+        return_value.append(
+            "for usr in $(cut -d: -f1 /etc/shadow); do [[ $(chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo \"$usr :$(chage --list $usr | grep '^Last password change' | cut -d: -f2)\"; done\nreturned the following\n" + error)
+    else:
+        return_value.append('last password change date not in past')
+        return_value.append('FAIL')
+        return_value.append(success)
+    return return_value
+
+
+def _5_4_2_ind():
+    return_value = list()
+    success, error = check(
+        'awk -F: \'($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $1!~/^\+/ && $3<\'"$(awk \'/^\s*UID_MIN/{print $2}\' /etc/login.defs)"\' && $7!="\'"$(which nologin)"\'" && $7!="/bin/false") {print}\' /etc/passwd')
+    if not success:
+        result_error = error
+        success, error = check(
+            'awk -F: \'($1!="root" && $1!~/^\+/ && $3<\'"$(awk \'/^\s*UID_MIN/{print $2}\' /etc/login.defs)"\') {print $1}\' /etc/passwd | xargs -I \'{}\' sudo passwd -S \'{}\' | awk \'($2!="L" && $2!="LK") {print $1}\'')
+        if not success:
+            return_value.append('system accounts are secured')
+            return_value.append('PASS')
+            return_value.append(result_error + '\n' + error)
+        else:
+            return_value.append('irregular user provides shell')
+            return_value.append('FAIL')
+            return_value.append(result_error + '\n' + success)
+    else:
+        return_value.append('nologin shell not set in password file')
+        return_value.append('FAIL')
+        return_value.append(success)
+    return return_value
+
+
+def _5_4_3_ind():
+    return_value = list()
+    success, error = check('grep "^root:" /etc/passwd | cut -f4 -d:')
+    if '0' in success:
+        return_value.append('root account GID is 0')
+        return_value.append('PASS')
+        return_value.append(
+            'grep "^root:" /etc/passwd | cut -f4 -d: returned\n' + success)
+    else:
+        return_value.append('root account GID not 0')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _5_4_4_ind():
+    return_value = list()
+    success, error = check('grep "umask" /etc/bashrc')
+    if success:
+        umask_permissions = ['22', '23', '27',
+                             '32', '33', '37', '72', '73', '77']
+        if any(u in success for u in umask_permissions):
+            result_success = success
+            success, error = check('grep "umask" /etc/profile')
+            if success:
+                if any(u in success for u in umask_permissions):
+                    result_success += success
+                    success, error = check('grep "umask" /etc/profile.d/*.sh')
+                    if success:
+                        if all(any(u in s for u in umask_permissions) for s in success.splitlines()):
+                            return_value.append(
+                                'default user umask is restrictive')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'profile.d/*.sh umask not less than 027')
+                            return_value.append('FAIL')
+                            return_value.append(success)
+                    else:
+                        return_value.append(
+                            'umask not found in profile.d/*.sh')
+                        return_value.append('FAIL')
+                        return_value.append(result_success + '\n' + error)
+                else:
+                    return_value.append(
+                        'profile umask not restrictive than 027')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('umask not found in profile')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('bashrc umask not 027 or more restrictive')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('umask not found in bashrc')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _5_4_5_ind():
+    return_value = list()
+    success, error = check('grep "^TMOUT" /etc/bashrc')
+    if success:
+        if all(s.strip('=')[1].lstrip('-').isdigit() and int(s.strip('=')[1]) != -1 and int(s.strip('=')[1]) <= 900 for s in success.splitlines()):
+            result_success = success
+            success, error = check('grep "^TMOUT" /etc/profile')
+            if success:
+                if all(s.strip('=')[1].lstrip('-').isdigit() and int(s.strip('=')[1]) != -1 and int(s.strip('=')[1]) <= 900 for s in success.splitlines()):
+                    return_value.append('user shell timeout is lt 900 sec')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('profile shell timeout not lt 900 sec')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('shell timeout not in profile')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('bashrc shell timeout not lt 900 sec')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('shell timeout not in bashrc')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep "^TMOUT" /etc/bashrc returned the following\n' + error)
+    return return_value
+
+
+def _5_5_ind():
+    return_value = list()
+    success, error = check('cat /etc/securetty')
+    if success:
+        return_value.append('root login is restricted to system')
+        return_value.append('PASS')
+        return_value.append(
+            'check if following are valid terminals that may be logged in directly as root\n' + success)
+    else:
+        return_value.append('root login not restricted to system')
+        return_value.append('FAIL')
+        return_value.append(
+            'cat /etc/securetty returned the following\n' + error)
+    return return_value
+
+
+def _5_6_ind():
+    return_value = list()
+    success, error = check('grep pam_wheel.so /etc/pam.d/su')
+    if success:
+        if any('auth       required   pam_wheel.so use_uid' in s and not s.startswith('#') for s in success.splitlines()):
+            result_success = success
+            success, error = check('grep wheel /etc/group')
+            if success:
+                if all(s.startswith('wheel:x:10:root,') for s in success.splitlines()):
+                    return_value.append('access to su command is restricted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success + '\nverify users in wheel group match site policy\n' + success)
+                else:
+                    return_value.append('access to su command not restricted')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('access to su command not restricted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\ngrep wheel /etc/group returned the following\n' + error)
+        else:
+            return_value.append('access to su command not restricted')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('access to su command not restricted')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep pam_wheel.so /etc/pam.d/su returned the following\n' + error)
     return return_value
 
 

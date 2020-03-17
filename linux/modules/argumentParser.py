@@ -10,7 +10,7 @@ parser = ArgumentParser(prog='SeBAz',
                         formatter_class=RawTextHelpFormatter)
 
 # SeBAz version
-parser.version = '%(prog)s v0.1.1'
+parser.version = '%(prog)s v0.2.1'
 
 # optional arguments
 
@@ -114,7 +114,7 @@ parser.add_argument('-r', '--report', type=str, metavar='SeBAz.csv',
 
 # Control explainer
 parser.add_argument('--exp', type=str, nargs='+',
-                    action='store', help='Explain a control based on recommendation number'
+                    action='storeSeBAz', help='Explain a control based on recommendation number'
                     '\nExample:'
                     '\n --exp 4.1')
 

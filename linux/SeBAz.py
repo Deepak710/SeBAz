@@ -6,6 +6,7 @@ from time import time, gmtime, localtime
 from os import system, path, geteuid
 from modules.benchmarks import test
 from enlighten import get_manager
+from gc import enable, disable
 from csv import writer
 from sys import exit
 
@@ -41,8 +42,12 @@ if not geteuid() == 0:
     exit('\nPlease run SeBAz as root\n')
 
 
+# enabling garbage collection
+enable()
+# starting terminal manager by enlighten
+manager = get_manager()
 print(bold('Welcome to SeBAz'))
-print('\nGive me a moment to calculate the prerequisites...\n')
+print('\n\nGive me a moment to calculate the prerequisites...\n\n')
 
 
 # writing test details and start time to .SeBAz.csv file
@@ -64,9 +69,9 @@ if options.verbose:
     print(bold(red('Red    Text indicates tests that have FAILED')))
     if options.score == None:
         print(bold(yellow('Yellow Text indicates tests that are  NOT SCORED')))
-    print('\nPerforming ' + str(length) + ' tests now...\n')
+    print('\n\nPerforming ' + str(length) + ' tests now...\n')
 else:
-    print('Done. Performing ' + str(length) + ' tests now...\n')
+    print('Done. Performing ' + str(length) + ' tests now...\n\n')
 
 # progressbar format
 bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
@@ -74,7 +79,6 @@ bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
     bold(red('fail')) + u':{count_1:{len_total}d} ' + \
     bold(yellow('chek')) + u':{count_2:{len_total}d} ' + \
     u'[{elapsed}<{eta}, {rate:.1f}{unit_pad}{unit}/s]'
-manager = get_manager()
 passd = manager.counter(total=length, desc='Testing', unit='tests',
                         color='bright_white', bar_format=bar_format)
 faild = passd.add_subcounter('bright_white')
@@ -135,7 +139,7 @@ with open(file_path, 'a', newline='') as csvfile:
     csvwriter.writerow([result.splitlines()[1]])
 
 # Generating PDF
-print('\nGenerating ' + str(options.org) +
+print('\n\nGenerating ' + str(options.org) +
       '-' + str(options.unique) + '.SeBAz.pdf')
 createPDF(file_path)
 print('Done.')
@@ -143,3 +147,6 @@ print('Done.')
 # printing test results
 print(duration)
 print(result)
+
+# disabling garbage collection
+disable()
