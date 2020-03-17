@@ -414,13 +414,15 @@ def print_neutral(r, x, p, len): print(bold(yellow('{:<11}{:<{width}}{:>5}'.form
 # function to execute the check
 def check(execute):
     global log_file
-    log_file.write('Start:\t\t' + str(time()) +
-                   '\nCommand:\t' + execute + '\nOutput:\n')
+    write_log = open(log_file + str(time()) + '.log', 'a')
+    write_log.write('Start:\t\t' + str(time()) +
+                    '\nCommand:\t' + execute + '\nOutput:\n')
     execute = Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE,
                     shell=True, executable='/bin/bash').communicate()
     execute = [e.decode('utf-8') for e in execute]
-    log_file.writelines(execute)
-    log_file.write('\nEnd:\t\t' + str(time()) + '\n\n\n')
+    write_log.writelines(execute)
+    write_log.write('\nEnd:\t\t' + str(time()) + '\n\n\n')
+    write_log.close()
     return execute
 
 
@@ -9777,23 +9779,7 @@ def _1_1_23_ubu():
 
 
 # function to call necessary recommendation benchmarks
-def test(r, file_path, dist, verbosity, passd, faild, check, term_width, log):
-    """\nCall using recommendation number and distribution\n
-    Returns:\n
-        0 -> If the test FAILS or needs the auditor to CHECK the results\n
-        1 -> The test PASSES, but is NOT SCORED\n
-        2 -> The test PASSED and IS SCORED\n
-    Args:\n
-        r           - Required : recommendation number (String)\n
-        file_path   - Required : path to the corresponding SeBAz.csv file (String)\n
-        dist        - Required : distribution (String)\n
-        verbosity   - Required : whether result needs to be displayed on terminal or not (Boolean)\n
-        passd       - Required : enlighten manager counter object to denote PASSED results (Object)\n
-        faild       - Required : enlighten manager counter object to denote FAILED results (Object)\n
-        check       - Required : enlighten manager counter object to denote results to be CHECKED (Object)\n
-        term_width  - Required : width of the terminal as determined by manager (Int)\n
-        log         - Required : file to log command execution (File Object)\n
-    """
+def test(r, log, dist, verbosity, passd, faild, check, width):
     # test start time
     start = time()
     global log_file
@@ -9806,30 +9792,26 @@ def test(r, file_path, dist, verbosity, passd, faild, check, term_width, log):
         return_score = 2
         passd.update()
         if verbosity:
-            print_success(r[0], return_value[0], return_value[1], term_width)
+            print_success(r[0], return_value[0], return_value[1], width)
     elif 'PASS' == return_value[1]:
         return_score = 1
         passd.update()
         if verbosity:
-            print_neutral(r[0], return_value[0], return_value[1], term_width)
+            print_neutral(r[0], return_value[0], return_value[1], width)
     elif 'CHEK' == return_value[1]:
         check.update()
         if verbosity:
-            print_neutral(r[0], return_value[0], return_value[1], term_width)
+            print_neutral(r[0], return_value[0], return_value[1], width)
     else:
         faild.update()
         if verbosity:
-            print_fail(r[0], return_value[0], return_value[1], term_width)
+            print_fail(r[0], return_value[0], return_value[1], width)
 
-    # writing findings to .SeBAz file
     return_value.insert(0, r[0])
     return_value.append(str(time() - start))
-    with open(file_path, 'a', newline='') as csvfile:
-        csvwriter = writer(csvfile, dialect='excel')
-        csvwriter.writerow(return_value)
 
     # returning score
-    return return_score
+    return [return_score, return_value]
 
 
 if __name__ == "__main__":

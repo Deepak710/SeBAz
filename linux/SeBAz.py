@@ -1,12 +1,13 @@
 from modules.optionsParser import get_recommendations, disp_exp
 from modules.reportGenerator import createPDF, generatePDF
+from concurrent.futures import ThreadPoolExecutor
 from huepy import bold, red, green, yellow
 from modules.argumentParser import parser
 from time import time, gmtime, localtime
 from os import system, path, geteuid
 from modules.benchmarks import test
 from enlighten import get_manager
-from gc import enable, disable
+from itertools import repeat
 from csv import writer
 from sys import exit
 
@@ -14,12 +15,10 @@ from sys import exit
 # getting optional arguments from user
 options = parser.parse_args()
 
-
 # noting the start time
 start = time()
 gmt_time = gmtime()
 local = localtime()
-
 
 # setting distribution to independent if nothing is specified
 if options.dist == None:
@@ -41,14 +40,10 @@ if options.report != None:
 if not geteuid() == 0:
     exit('\nPlease run SeBAz as root\n')
 
-
-# enabling garbage collection
-enable()
 # starting terminal manager by enlighten
 manager = get_manager()
 print(bold('Welcome to SeBAz'))
 print('\n\nGive me a moment to calculate the prerequisites...\n\n')
-
 
 # writing test details and start time to .SeBAz.csv file
 file_path = path.dirname(path.abspath(__file__)) + '/' + \
@@ -74,35 +69,41 @@ else:
     print('Done. Performing ' + str(length) + ' tests now...\n\n')
 
 # progressbar format
-bar_format = u'{desc}{desc_pad}{percentage:3.0f}%|{bar}| ' + \
+bar_format = u'{count:03d}/{total:03d}{percentage:6.1f}%|{bar}| ' + \
     bold(green('pass')) + u':{count_0:{len_total}d} ' + \
     bold(red('fail')) + u':{count_1:{len_total}d} ' + \
     bold(yellow('chek')) + u':{count_2:{len_total}d} ' + \
     u'[{elapsed}<{eta}, {rate:.1f}{unit_pad}{unit}/s]'
-passd = manager.counter(total=length, desc='Testing', unit='tests',
+passd = manager.counter(total=length, unit='tests',
                         color='bright_white', bar_format=bar_format)
 faild = passd.add_subcounter('bright_white')
 check = passd.add_subcounter('bright_white')
 
 # SeBAz.log file
-log_file = open(file_path.split('.csv')[0] + '.log', 'a')
+log_file = path.dirname(path.abspath(__file__)) + '/logs/'
+system('mkdir ' + log_file)
 
 # calling the benchmark functions
-for i, r in enumerate(recommendations):
-    passd.desc = '{rec:<8} {current:03d}/{total:03d}'.format(
-        rec=r[0], current=i+1, total=length)
-    if i + 1 == length:
-        passd.desc = '{:<16}'.format('Done')
-    s = test(r, file_path, options.dist, options.verbose,
-             passd, faild, check, manager.width, log_file)
-    if s:
-        passed += 1
-    if s == 2:
-        score += 1
+# for i, r in enumerate(recommendations):
+with ThreadPoolExecutor() as executor:
+    result = list(executor.map(test, recommendations, repeat(log_file, length), repeat(
+        options.dist, length), repeat(options.verbose, length), repeat(
+        passd, length), repeat(faild, length), repeat(check, length), repeat(
+            manager.width, length)))
+
 manager.stop()
 
-# closing log file
-log_file.close()
+print('\nGenerating ' + str(options.org) +
+      '-' + str(options.unique) + '.SeBAz.csv')
+with open(file_path, 'a', newline='') as csvfile:
+    csvwriter = writer(csvfile, dialect='excel')
+    for r in result:
+        if r[0]:
+            passed += 1
+        if r[0] == 2:
+            score += 1
+        csvwriter.writerow(r[1])
+print('Done.')
 
 # calculating runtime
 duration = '\nPerformed ' + str(length) + ' tests in '
@@ -139,7 +140,7 @@ with open(file_path, 'a', newline='') as csvfile:
     csvwriter.writerow([result.splitlines()[1]])
 
 # Generating PDF
-print('\n\nGenerating ' + str(options.org) +
+print('\nGenerating ' + str(options.org) +
       '-' + str(options.unique) + '.SeBAz.pdf')
 createPDF(file_path)
 print('Done.')
@@ -147,6 +148,3 @@ print('Done.')
 # printing test results
 print(duration)
 print(result)
-
-# disabling garbage collection
-disable()
