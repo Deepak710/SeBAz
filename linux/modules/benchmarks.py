@@ -240,6 +240,20 @@ benchmark_ind = [
     ['5.4.5', 1, 2, 2, 'Ensure default user shell timeout is 900 seconds or less'],
     ['5.5', 0, 1, 1, 'Ensure root login is restricted to system console'],
     ['5.6', 1, 1, 1, 'Ensure access to the su command is restricted'],
+    ['6.1.1', 0, 2, 2, 'Audit system file permissions (distro specific)'],
+    ['6.1.2', 1, 1, 1, 'Ensure permissions on /etc/passwd are configured'],
+    ['6.1.3', 1, 1, 1, 'Ensure permissions on /etc/shadow are configured'],
+    ['6.1.4', 1, 1, 1, 'Ensure permissions on /etc/group are configured'],
+    ['6.1.5', 1, 1, 1, 'Ensure permissions on /etc/gshadow are configured'],
+    ['6.1.6', 1, 1, 1, 'Ensure permissions on /etc/passwd- are configured'],
+    ['6.1.7', 1, 1, 1, 'Ensure permissions on /etc/shadow- are configured'],
+    ['6.1.8', 1, 1, 1, 'Ensure permissions on /etc/group- are configured'],
+    ['6.1.9', 1, 1, 1, 'Ensure permissions on /etc/gshadow- are configured'],
+    ['6.1.10', 1, 1, 1, 'Ensure no world writable files exist'],
+    ['6.1.11', 1, 1, 1, 'Ensure no unowned files or directories exist'],
+    ['6.1.12', 1, 1, 1, 'Ensure no ungrouped files or directories exist'],
+    ['6.1.13', 0, 1, 1, 'Audit SUID executables'],
+    ['6.1.14', 0, 1, 1, 'Audit SGID executables'],
 ]
 benchmark_cen = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -414,7 +428,7 @@ def print_neutral(r, x, p, len): print(bold(yellow('{:<11}{:<{width}}{:>5}'.form
 # function to execute the check
 def check(execute):
     global log_file
-    write_log = open(log_file + str(time()) + '.log', 'a')
+    write_log = open(log_file + str(time()) + '.SeBAz.log', 'a')
     write_log.write('Start:\t\t' + str(time()) +
                     '\nCommand:\t' + execute + '\nOutput:\n')
     execute = Popen(execute, stdin=PIPE, stdout=PIPE, stderr=PIPE,
@@ -3799,7 +3813,7 @@ def _3_5_1_4_ind():
 
 def _3_5_2_1_ind():
     return_value = list()
-    success, error = check('iptables -L | grep Chain')
+    success, error = check('iptables -w -L | grep Chain')
     if success:
         if all('policy DROP' in s or 'policy REJECT' in s for s in success.splitlines()):
             return_value.append('default deny firewall policy')
@@ -3818,7 +3832,7 @@ def _3_5_2_1_ind():
 
 def _3_5_2_2_ind():
     return_value = list()
-    success, error = check('iptables -L INPUT -v -n')
+    success, error = check('iptables -w -L INPUT -v -n')
     if success:
         loopbacks = [s for s in success.splitlines()]
         flag = 1
@@ -3911,7 +3925,7 @@ def _3_5_2_2_ind():
             return_value.append(success)
         if not flag:
             result_success = '\nConfig of firewall Input table\n' + success + '\n'
-            success, error = check('iptables -L OUTPUT -v -n')
+            success, error = check('iptables -w -L OUTPUT -v -n')
             if success:
                 loopbacks = [s for s in success.splitlines()]
                 if len(loopbacks) > 2:
@@ -3984,7 +3998,7 @@ def _3_5_2_2_ind():
 
 def _3_5_2_3_ind():
     return_value = list()
-    success, error = check('iptables -L -v -n')
+    success, error = check('iptables -w -L -v -n')
     if success:
         if len(success.splitlines()) > 8:
             return_value.append('iptables contains config')
@@ -4010,7 +4024,7 @@ def _3_5_2_4_ind():
                       for s in success.splitlines() if s.split()[0] != 'Netid']
         if len(open_ports):
             result_success = success
-            success, error = check('iptables -L INPUT -v -n')
+            success, error = check('iptables -w -L INPUT -v -n')
             if success:
                 rules = [s.split()[0] for s in success.splitlines() if s.split()[0] != 'Chain' and s.split()[
                     0] != 'pkts' and s.split()[2] not in ['ACCEPT', 'DROP', 'QUEUE', 'RETURN']]
@@ -6168,6 +6182,451 @@ def _5_6_ind():
         return_value.append('FAIL')
         return_value.append(
             'grep pam_wheel.so /etc/pam.d/su returned the following\n' + error)
+    return return_value
+
+
+# distro specific
+def _6_1_1_ind():
+    return_value = list()
+    return_value.append('system file perms not checked (ind distro)')
+    return_value.append('CHEK')
+    return_value.append('Distribution was not specified')
+    return return_value
+    global log_file
+    write_log = log_file.split(
+        '_SeBAz_logs/')[0] + 'system_file_permissions.SeBAz.log'
+    success, error = check('dpkg --verify > ' + write_log)
+    return_value.append('Audit system file permissions')
+    return_value.append('CHEK')
+    return_value.append('Verify the contents of ' +
+                        write_log.split('/')[-1] + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _6_1_2_ind():
+    return_value = list()
+    success, error = check('stat /etc/passwd | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/passwd permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/passwd permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/passwd invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/passwd not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/passwd | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_3_ind():
+    return_value = list()
+    success, error = check('stat /etc/shadow | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = ['(0640/-rw-r-----)', '(0600/-rw-------)',
+                                  '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/shadow permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/shadow permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/shadow invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/shadow invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/shadow not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/shadow | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_4_ind():
+    return_value = list()
+    success, error = check('stat /etc/group | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/group permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/group permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/group invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/group not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/group | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_5_ind():
+    return_value = list()
+    success, error = check('stat /etc/gshadow | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/gshadow permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/gshadow permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/gshadow invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/gshadow invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/gshadow not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/gshadow | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_6_ind():
+    return_value = list()
+    success, error = check('stat /etc/passwd- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            allowed_access = ['(0600/-rw-------)', '(0400/-r--------)']
+            if any(a in success for a in allowed_access):
+                return_value.append('/etc/passwd- permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/passwd- permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/passwd- invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/passwd- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/passwd- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_7_ind():
+    return_value = list()
+    success, error = check('stat /etc/shadow- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/shadow- permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/shadow- permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/shadow- invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/shadow- invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/shadow- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/shadow- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_8_ind():
+    return_value = list()
+    success, error = check('stat /etc/group- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            allowed_access = ['(0644/-rw-r--r--)', '(0640/-rw-r-----)', '(0600/-rw-------)',
+                              '(0444/-r--r--r--)', '(0440/-r--r-----)', '(0400/-r--------)']
+            if any(a in success for a in allowed_access):
+                return_value.append('/etc/group- permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/group- permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/group- invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/group- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/group- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_9_ind():
+    return_value = list()
+    success, error = check('stat /etc/gshadow- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/gshadow- permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/gshadow- permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/gshadow- invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/gshadow- invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/gshadow- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/gshadow- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_10_ind():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -0002')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('world writable files does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002 confirms that all world writable directories have the sticky variable set\n" + result_error)
+            else:
+                return_value.append('world writable files exist in partitions')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following world writable files exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('world writable files does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002 confirms that all world writable directories have the sticky variable set\n" + result_error + '\n' + error)
+    else:
+        return_value.append('world writable files exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following world writable files exist\n' + success)
+    return return_value
+
+
+def _6_1_11_ind():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check('find ' + p + ' -xdev -nouser')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('no unowned files or directories exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser confirms that no unowned files or directories exist\n" + result_error)
+            else:
+                return_value.append('unowned files or directories exist')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following unowned files or directories exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('no unowned files or directories exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser confirms that no unowned files or directories exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('unowned files or directories exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following unowned files or directories exist\n' + success)
+    return return_value
+
+
+def _6_1_12_ind():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check('find ' + p + ' -xdev -nogroup')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('no ungrouped files or directories exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup confirms that no ungrouped files or directories exist\n" + result_error)
+            else:
+                return_value.append('ungrouped files or directories exist')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following ungrouped files or directories exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('no ungrouped files or directories exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup confirms that no ungrouped files or directories exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('ungrouped files or directories exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following ungrouped files or directories exist\n' + success)
+    return return_value
+
+
+def _6_1_13_ind():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -4000')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('SUID executables does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000 confirms that SUID executables does not exist\n" + result_error)
+            else:
+                return_value.append('SUID executables found')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following SUID executables exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('SUID executables does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000 confirms that SUID executables does not exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('SUID executables found')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following SUID executables exist\n' + success)
+    return return_value
+
+
+def _6_1_14_ind():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -2000')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('SGID executables does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000 confirms that SGID executables does not exist\n" + result_error)
+            else:
+                return_value.append('SGID executables found')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following SGID executables exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('SGID executables does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000 confirms that SGID executables does not exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('SGID executables found')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following SGID executables exist\n' + success)
     return return_value
 
 

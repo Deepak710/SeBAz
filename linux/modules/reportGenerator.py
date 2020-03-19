@@ -437,11 +437,18 @@ def createPDF(SeBAz):
 
 
 def generatePDF(SeBAz):
+
+    def forThread(file_name):
+        print('\nGenerating ' + file_name.split('.csv')[0] + '.pdf')
+        createPDF(file_name)
+        print('\nGenerated ' + file_name.split('.csv')[0] + '.pdf')
+
     from glob import glob
-    for c in glob(SeBAz + '.SeBAz.csv'):
-        print('\nGenerating ' + c.split('.csv')[0] + '.pdf')
-        createPDF(c)
-        print('Done.\n')
+    from concurrent.futures import ThreadPoolExecutor
+
+    with ThreadPoolExecutor() as executor:
+        executor.map(forThread, glob(SeBAz + '.SeBAz.csv'))
+
     exit()
 
 

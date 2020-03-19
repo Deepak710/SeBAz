@@ -42,6 +42,7 @@ if not geteuid() == 0:
 
 # starting terminal manager by enlighten
 manager = get_manager()
+system('sudo clear')
 print(bold('Welcome to SeBAz'))
 print('\n\nGive me a moment to calculate the prerequisites...\n\n')
 
@@ -80,7 +81,8 @@ faild = passd.add_subcounter('bright_white')
 check = passd.add_subcounter('bright_white')
 
 # SeBAz.log file
-log_file = path.dirname(path.abspath(__file__)) + '/logs/'
+log_file = path.dirname(path.abspath(__file__)) + '/' + \
+    str(options.org) + '-' + str(options.unique) + '_SeBAz_logs/'
 system('mkdir ' + log_file)
 
 # calling the benchmark functions
@@ -93,7 +95,7 @@ with ThreadPoolExecutor() as executor:
 
 manager.stop()
 
-print('\nGenerating ' + str(options.org) +
+print('\n\nGenerating ' + str(options.org) +
       '-' + str(options.unique) + '.SeBAz.csv')
 with open(file_path, 'a', newline='') as csvfile:
     csvwriter = writer(csvfile, dialect='excel')
