@@ -11,7 +11,7 @@ grep -E -v '^(halt|sync|shutdown)' /etc/passwd | awk -F: '($7 != "'"$(which nolo
                     echo "Group Write permission set on file $file"
                 fi
                 if [ $(echo $fileperm | cut -c9)  != "-" ]; then
-                    echo"Other Write permission set on file $file"
+                    echo "Other Write permission set on file $file"
                 fi
             fi
         done
