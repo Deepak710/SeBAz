@@ -443,6 +443,63 @@ benchmark_deb = [
         'Ensure system administrator actions (sudolog) are collected'],
     ['4.1.17', 1, 2, 2, 'Ensure kernel module loading and unloading is collected'],
     ['4.1.18', 1, 2, 2, 'Ensure the audit configuration is immutable'],
+    ['4.2.1.1', 1, 1, 1, 'Ensure the audit configuration is immutable'],
+    ['4.2.1.2', 0, 1, 1, 'Ensure logging is configured'],
+    ['4.2.1.3', 1, 1, 1, 'Ensure rsyslog default file permissions configured'],
+    ['4.2.1.4', 1, 1, 1, 'Ensure rsyslog is configured to send logs to a remote log host'],
+    ['4.2.1.5', 0, 1, 1,
+        'Ensure remote rsyslog messages are only accepted on designated log hosts'],
+    ['4.2.2.1', 1, 1, 1, 'Ensure syslog-ng service is enabled'],
+    ['4.2.2.2', 0, 1, 1, 'Ensure logging is configured'],
+    ['4.2.2.3', 1, 1, 1, 'Ensure syslog-ng default file permissions configured'],
+    ['4.2.2.4', 0, 1, 1, 'Ensure syslog-ng is configured to send logs to a remote log host'],
+    ['4.2.2.5', 0, 1, 1,
+        'Ensure remote syslog-ng messages are only accepted on designated log hosts'],
+    ['4.2.3', 1, 1, 1, 'Ensure rsyslog or syslog-ng is installed'],
+    ['4.2.4', 1, 1, 1, 'Ensure permissions on all logfiles are configured'],
+    ['4.3', 0, 1, 1, 'Ensure logrotate is configured'],
+    ['5.1.1', 1, 1, 1, 'Ensure cron daemon is enabled'],
+    ['5.1.2', 1, 1, 1, 'Ensure permissions on /etc/crontab are configured'],
+    ['5.1.3', 1, 1, 1, 'Ensure permissions on /etc/cron.hourly are configured'],
+    ['5.1.4', 1, 1, 1, 'Ensure permissions on /etc/cron.daily are configured'],
+    ['5.1.5', 1, 1, 1, 'Ensure permissions on /etc/cron.weekly are configured'],
+    ['5.1.6', 1, 1, 1, 'Ensure permissions on /etc/cron.monthly are configured'],
+    ['5.1.7', 1, 1, 1, 'Ensure permissions on /etc/cron.d are configured'],
+    ['5.1.8', 1, 1, 1, 'Ensure at/cron is restricted to authorized users'],
+    ['5.2.1', 1, 1, 1, 'Ensure permissions on /etc/ssh/sshd_config are configured'],
+    ['5.2.2', 1, 1, 1, 'Ensure permissions on SSH private host key files are configured'],
+    ['5.2.3', 1, 1, 1, 'Ensure permissions on SSH public host key files are configured'],
+    ['5.2.4', 1, 1, 1, 'Ensure SSH Protocol is set to 2'],
+    ['5.2.5', 1, 1, 1, 'Ensure SSH LogLevel is appropriate'],
+    ['5.2.6', 1, 2, 1, 'Ensure SSH X11 forwarding is disabled'],
+    ['5.2.7', 1, 1, 1, 'Ensure SSH MaxAuthTries is set to 4 or less'],
+    ['5.2.8', 1, 1, 1, 'Ensure SSH IgnoreRhosts is enabled'],
+    ['5.2.9', 1, 1, 1, 'Ensure SSH HostbasedAuthentication is disabled'],
+    ['5.2.10', 1, 1, 1, 'Ensure SSH root login is disabled'],
+    ['5.2.11', 1, 1, 1, 'Ensure SSH PermitEmptyPasswords is disabled'],
+    ['5.2.12', 1, 1, 1, 'Ensure SSH PermitUserEnvironment is disabled'],
+    ['5.2.13', 1, 1, 1, 'Ensure only strong Ciphers are used'],
+    ['5.2.14', 1, 1, 1, 'Ensure only strong MAC algorithms are used'],
+    ['5.2.15', 1, 1, 1, 'Ensure only strong Key Exchange algorithms are used'],
+    ['5.2.16', 1, 1, 1, 'Ensure SSH Idle Timeout Interval is configured'],
+    ['5.2.17', 1, 1, 1, 'Ensure SSH LoginGraceTime is set to one minute or less'],
+    ['5.2.18', 1, 1, 1, 'Ensure SSH access is limited'],
+    ['5.2.19', 1, 1, 1, 'Ensure SSH warning banner is configured'],
+    ['5.3.1', 1, 1, 1, 'Ensure password creation requirements are configured'],
+    ['5.3.2', 1, 1, 1, 'Ensure lockout for failed password attempts is configured'],
+    ['5.3.3', 1, 1, 1, 'Ensure password reuse is limited'],
+    ['5.3.4', 1, 1, 1, 'Ensure password hashing algorithm is SHA-512'],
+    ['5.4.1.1', 1, 1, 1, 'Ensure password expiration is 365 days or less'],
+    ['5.4.1.2', 1, 1, 1, 'Ensure minimum days between password changes is 7 or more'],
+    ['5.4.1.3', 1, 1, 1, 'Ensure password expiration warning days is 7 or more'],
+    ['5.4.1.4', 1, 1, 1, 'Ensure inactive password lock is 30 days or less'],
+    ['5.4.1.5', 1, 1, 1, 'Ensure all users last password change date is in the past'],
+    ['5.4.2', 1, 1, 1, 'Ensure system accounts are non-login'],
+    ['5.4.3', 1, 1, 1, 'Ensure default group for the root account is GID 0'],
+    ['5.4.4', 1, 1, 1, 'Ensure default user umask is 027 or more restrictive'],
+    ['5.4.5', 1, 2, 2, 'Ensure default user shell timeout is 900 seconds or less'],
+    ['5.5', 0, 1, 1, 'Ensure root login is restricted to system console'],
+    ['5.6', 1, 1, 1, 'Ensure access to the su command is restricted'],
 ]
 benchmark_fed = [
     ['1.1.1.1', 1, 1, 1, 'Ensure mounting of cramfs filesystems is disabled'],
@@ -5995,7 +6052,7 @@ def _5_3_4_ind():
         return_value.append('password hashing algorithm is SHA-512')
         return_value.append('CHEK')
         return_value.append(
-            'Verify remembered password history is 5or more\n' + result_success + '\n' + result_error)
+            'ensure the sha512 option is included in all results\n' + result_success + '\n' + result_error)
     else:
         return_value.append('password hashing algorithm not SHA-512')
         return_value.append('FAIL')
@@ -11409,6 +11466,1290 @@ def _4_1_18_deb():
         return_value.append('audit configuration is mutable')
         return_value.append('FAIL')
         return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _4_2_1_1_deb():
+    return_value = list()
+    success, error = check('systemctl is-enabled rsyslog | grep enabled')
+    if 'enabled' in success:
+        return_value.append('rsyslog is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('rsyslog is disabled')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _4_2_1_2_deb():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('cat /etc/rsyslog.conf')
+    if success:
+        result_success += 'Review the contents of rsyslog.conf\n' + success
+    else:
+        result_error += error
+    success, error = check('cat /etc/rsyslog.d/*.conf')
+    if success:
+        result_success += 'Review the contents of rsyslog.d/*.conf\n' + success
+    else:
+        result_error += error
+    success, error = check('ls -l /var/log/')
+    if success:
+        result_success += 'verify that the log files are logging information\n' + success
+    else:
+        result_error += error
+    if len(result_success):
+        return_value.append('logging is configured')
+        return_value.append('CHEK')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('logging not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_2_1_3_deb():
+    return_value = list()
+    success, error = check(
+        'grep ^\$FileCreateMode /etc/rsyslog.conf /etc/rsyslog.d/*.conf')
+    if success:
+        allowed_perms = ['0640', '0600', '0440', '0400', '0240', '0200']
+        perms = [s.split(':')[1].split()[1] for s in success.splitlines()]
+        if all(p in allowed_perms for p in perms):
+            return_value.append('rsyslog file permissions configured')
+            return_value.append('PASS')
+            return_value.append(success + '\n' + error)
+        else:
+            return_value.append('rsyslog file permissions not configured')
+            return_value.append('PASS')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('rsyslog file permissions not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_1_4_deb():
+    return_value = list()
+    success, error = check(
+        'grep "^*.*[^I][^I]*@" /etc/rsyslog.conf /etc/rsyslog.d/*.conf')
+    if success:
+        return_value.append('rsyslog sends logs to remote log host')
+        return_value.append('PASS')
+        return_value.append(
+            'verify that logs are sent to central log host\n' + success + '\n' + error)
+    else:
+        return_value.append('rsyslog does not sends logs')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_1_5_deb():
+    return_value = list()
+    success, error = check(
+        "grep '$ModLoad imtcp' /etc/rsyslog.conf /etc/rsyslog.d/*.conf")
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check(
+        "grep '$InputTCPServerRun' /etc/rsyslog.conf /etc/rsyslog.d/*.conf")
+    result_success = success if success else ''
+    result_error = error if error else ''
+    if len(result_success):
+        return_value.append('rsyslog messages accepted designated')
+        return_value.append('PASS')
+        return_value.append(
+            'verify the resulting lines are uncommented on designated log hosts and commented or removed on all others\n' + result_success + '\n' + result_error)
+    else:
+        return_value.append('rsyslog messages not config')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_2_2_1_deb():
+    return_value = list()
+    success, error = check('systemctl is-enabled syslog-ng | grep enabled')
+    if 'enabled' in success:
+        return_value.append('syslog-ng is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('syslog-ng is disabled')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _4_2_2_2_deb():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('cat /etc/syslog-ng/syslog-ng.conf')
+    if success:
+        result_success += 'Review the contents of syslog-ng.conf\n' + success
+    else:
+        result_error += error
+    success, error = check('ls -l /var/log/')
+    if success:
+        result_success += 'verify that the log files are logging information\n' + success
+    else:
+        result_error += error
+    if len(result_success):
+        return_value.append('logging is configured')
+        return_value.append('CHEK')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('logging not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _4_2_2_3_deb():
+    return_value = list()
+    success, error = check(
+        'grep ^options /etc/syslog-ng/syslog-ng.conf')
+    if success:
+        allowed_perms = ['0640', '0600', '0440', '0400', '0240', '0200']
+        if any(ap in success for ap in allowed_perms):
+            return_value.append('syslog-ng file permissions configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('syslog-ng file permissions not configured')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('syslog-ng file permissions not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_2_4_deb():
+    return_value = list()
+    success, error = check(
+        'cat /etc/syslog-ng/syslog-ng.conf | grep "destination logserver"')
+    if success:
+        return_value.append('syslog-ng sends logs to remote log host')
+        return_value.append('PASS')
+        return_value.append(
+            'verify that logs are sent to central log host\n' + success + '\n' + error)
+    else:
+        return_value.append('syslog-ng does not sends logs')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_2_5_deb():
+    return_value = list()
+    success, error = check('cat /etc/syslog-ng/syslog-ng.conf')
+    if success:
+        return_value.append('syslog-ng messages accepted designated')
+        return_value.append('PASS')
+        return_value.append(
+            'verify the resulting lines are configured appropriately on designated log hosts\n' + success)
+    else:
+        return_value.append('syslog-ng messages not config')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_2_3_deb():
+    return_value = list()
+    success, error = check('dpkg -s rsyslog')
+    if success:
+        return_value.append('rsyslog is installed')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        result_error = error + '\n'
+        success, error = check('dpkg -s syslog-ng')
+        if success:
+            return_value.append('syslog-ng is installed')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            result_error += error
+            return_value.append('rsyslog and syslog-ng is not installed')
+            return_value.append('FAIL')
+            return_value.append(result_error)
+    return return_value
+
+
+def _4_2_4_deb():
+    return_value = list()
+    success, error = check('find /var/log -type f -ls')
+    if success:
+        if all('r-----' in s.split()[2][-6:] for s in success.splitlines()):
+            return_value.append('permissions on all logfiles config')
+            return_value.append('PASS')
+            return_value.append(success + '\nfollowing not checked\n' + error)
+        else:
+            return_value.append('permissions not config on all logfiles')
+            return_value.append('FAIL')
+            return_value.append('other has permissions on files OR group has write or execute permissions\n' +
+                                success + '\nfollowing not checked\n' + error)
+    else:
+        return_value.append('permissions on logfiles not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _4_3_deb():
+    return_value = list()
+    result_success = ''
+    result_error = ''
+    success, error = check('cat /etc/logrotate.conf')
+    if success:
+        result_success += 'verify logs in logrotate.conf are rotated according to site policy\n' + success
+    else:
+        result_error += error
+    success, error = check('cat /etc/logrotate.d/*')
+    if success:
+        result_success += 'verify logs in logrotate directory are rotated according to site policy\n' + success
+    else:
+        result_error += error
+    if len(result_success):
+        return_value.append('lograte is configured')
+        return_value.append('CHEK')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('lograte not configured')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_1_1_deb():
+    return_value = list()
+    success, error = check('systemctl is-enabled cron')
+    if 'enabled' in success:
+        return_value.append('cron daemon is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('cron daemon not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'systemctl is-enabled cron returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_1_2_deb():
+    return_value = list()
+    success, error = check('stat /etc/crontab')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/crontab configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/crontab not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/crontab not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/crontab returned the following\n' + error)
+    return return_value
+
+
+def _5_1_3_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.hourly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.hourly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.hourly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.hourly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.hourly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_4_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.daily')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.daily configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.daily not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.daily not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.daily returned the following\n' + error)
+    return return_value
+
+
+def _5_1_5_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.weekly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.weekly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.weekly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.weekly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.weekly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_6_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.monthly')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.monthly configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.monthly not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.monthly not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.monthly returned the following\n' + error)
+    return return_value
+
+
+def _5_1_7_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.d')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/cron.d configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on /etc/cron.d not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/cron.d not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.d returned the following\n' + error)
+    return return_value
+
+
+def _5_1_8_deb():
+    return_value = list()
+    success, error = check('stat /etc/cron.deny')
+    if 'No such file or directory' in error:
+        result_error = error
+        success, error = check('stat /etc/at.deny')
+        if 'No such file or directory' in error:
+            result_error += error
+            success, error = check('stat /etc/cron.allow')
+            if success:
+                go_perm = success.splitlines()[0].split()[1][-7:-1]
+                if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+                    result_success = success
+                    success, error = check('stat /etc/at.allow')
+                    if success:
+                        go_perm = success.splitlines()[0].split()[1][-7:-1]
+                        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+                            return_value.append(
+                                'at/cron restricted to authorized users')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_error + '\n' + result_success + '\n' + success)
+                        else:
+                            return_value.append('/etc/at.allow not configured')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_error + '\n' + result_success + '\n' + success + '\n' + error)
+                    else:
+                        return_value.append('/etc/at.allow not found')
+                        return_value.append('FAIL')
+                        return_value.append(result_error + '\n' + result_success +
+                                            '\nstat /etc/at.allow returned the following\n' + error)
+                else:
+                    return_value.append('/etc/cron.allow not configured')
+                    return_value.append('FAIL')
+                    return_value.append(result_error + '\n' + result_success +
+                                        '\nstat /etc/at.allow returned the following\n' + success)
+            else:
+                return_value.append('/etc/cron.allow not found')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_error + '\nstat /etc/at.allow returned the following\n' + error)
+        else:
+            return_value.append('/etc/at.deny exists')
+            return_value.append('FAIL')
+            return_value.append(
+                result_error + '\nstat /etc/at.deny returned the following\n' + error)
+    else:
+        return_value.append('/etc/cron.deny exists')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/cron.deny returned the following\n' + error)
+    return return_value
+
+
+def _5_2_1_deb():
+    return_value = list()
+    success, error = check('stat /etc/ssh/sshd_config')
+    if success:
+        go_perm = success.splitlines()[0].split()[1][-7:-1]
+        if '------' == go_perm and 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            return_value.append('perms on /etc/ssh/sshd_config configured')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('perms on sshd_config not configured')
+            return_value.append('FAIL')
+            return_value.append(success + '\n' + error)
+    else:
+        return_value.append('/etc/ssh/sshd_config not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'stat /etc/ssh/sshd_config returned the following\n' + error)
+    return return_value
+
+
+def _5_2_2_deb():
+    return_value = list()
+    success, error = check(
+        "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \;")
+    if success:
+        result_success = success
+        success, error = check(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \; | grep \"Access: (\"")
+        if all(s.split()[1][-7:-1] == '------' and 'Uid: (    0/    root)   Gid: (    0/    root)' in s for s in success.splitlines()):
+            return_value.append('SSH private host keys perms config')
+            return_value.append('PASS')
+            return_value.append(result_success)
+        else:
+            return_value.append('SSH private host keys perms not config')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('SSH private host keys not found')
+        return_value.append('FAIL')
+        return_value.append(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key' -exec stat {} \;\n" + error)
+    return return_value
+
+
+def _5_2_3_deb():
+    return_value = list()
+    success, error = check(
+        "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \;")
+    if success:
+        result_success = success
+        success, error = check(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \; | grep \"Access: (\"")
+        if all(s.split()[1][-7:-1] in ['------', 'r--r--', 'r-----', '---r--'] and 'Uid: (    0/    root)   Gid: (    0/    root)' in s for s in success.splitlines()):
+            return_value.append('SSH public host keys perms config')
+            return_value.append('PASS')
+            return_value.append(result_success)
+        else:
+            return_value.append('SSH public host keys perms not config')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('SSH public host keys not found')
+        return_value.append('FAIL')
+        return_value.append(
+            "find /etc/ssh -xdev -type f -name 'ssh_host_*_key.pub' -exec stat {} \;\n" + error)
+    return return_value
+
+
+def _5_2_4_deb():
+    return_value = list()
+    success, error = check('grep ^Protocol /etc/ssh/sshd_config')
+    if 'Protocol 2' in success:
+        return_value.append('SSH Protocol set to 2')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH Protocol not 2')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep ^Protocol /etc/ssh/sshd_config returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_5_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep loglevel')
+    if 'LogLevel VERBOSE' in success or 'loglevel INFO' in success:
+        return_value.append('SSH LogLevel is appropriate')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH LogLevel not appropriate')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep loglevel returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_6_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep x11forwarding')
+    if 'X11Forwarding no' in success:
+        return_value.append('SSH X11 forwarding is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH X11 forwarding not disabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep x11forwarding returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_7_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep maxauthtries')
+    if success:
+        tries = success.split()[1]
+        if int(tries) <= 4:
+            return_value.append('SSH MaxAuthTries is set to ' + tries)
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH MaxAuthTries is more than 4')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH MaxAuthTries not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep maxauthtries returned the following\n' + error)
+    return return_value
+
+
+def _5_2_8_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep ignorerhosts')
+    if 'IgnoreRhosts yes' in success:
+        return_value.append('SSH IgnoreRhosts is enabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH IgnoreRhosts is disabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep ignorerhosts returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_9_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep hostbasedauthentication')
+    if 'HostbasedAuthentication no' in success:
+        return_value.append('SSH HBA is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH HBA is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep hostbasedauthentication returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_10_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep permitrootlogin')
+    if 'PermitRootLogin no' in success:
+        return_value.append('SSH root login is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH root login is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permitrootlogin returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_11_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep permitemptypasswords')
+    if 'PermitEmptyPasswords no' in success:
+        return_value.append('SSH PermitEmptyPasswords is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH PermitEmptyPasswords is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permitemptypasswords returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_12_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep permituserenvironment')
+    if 'PermitUserEnvironment no' in success:
+        return_value.append('SSH PermitUserEnvironment is disabled')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH PermitUserEnvironment is enabled')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep permituserenvironment returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_13_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep ciphers')
+    weak_cyphers = ['3des-cbc', 'aes128-cbc', 'aes192-cbc', 'aes256-cbc', 'arcfour',
+                    'arcfour128', 'arcfour256', 'blowfish-cbc', 'cast128-cbc', 'rijndael-cbc@lysator.liu.se']
+    if success and not any(s in weak_cyphers for s in success.splitlines()):
+        return_value.append('SSH only strong Ciphers are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong Ciphers not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep ciphers returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_14_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep -i "MACs"')
+    weak_mac = ['hmac-md5', 'hmac-md5-96', 'hmac-ripemd160', 'hmac-sha1', 'hmac-sha1-96', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-md5-etm@openssh.com',
+                'hmac-md5-96-etm@openssh.com', 'hmac-ripemd160-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'hmac-sha1-96-etm@openssh.com', 'umac-64-etm@openssh.com', 'umac-128-etm@openssh.com']
+    if success and not any(s in weak_mac for s in success.splitlines()):
+        return_value.append('SSH only strong MAC algorithms are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong MAC algorithms not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep -i "MACs" returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_15_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep kexalgorithms')
+    weak_keys = ['diffie-hellman-group1-sha1',
+                 'diffie-hellman-group14-sha1', 'diffie-hellman-group-exchange-sha1']
+    if success and not any(s in weak_keys for s in success.splitlines()):
+        return_value.append('SSH only strong Key Exchange algorithms are used')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH strong Key Exchange algorithms not used')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep kexalgorithms returned the following\n' + success + error)
+    return return_value
+
+
+def _5_2_16_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep clientaliveinterval')
+    if success:
+        result_success = success
+        alive = success.split()[1]
+        if 1 <= int(alive) <= 300:
+            success, error = check('sshd -T | grep clientalivecountmax')
+            if success:
+                count = success.split()[1]
+                if int(count) <= 3:
+                    return_value.append('SSH Idle Timeout Interval configured')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('SSH ClientAliveCountMax more than 3')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('SSH ClientAliveCountMax not found')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('SSH ClientAliveInterval more than 300')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH ClientAliveInterval not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep clientaliveinterval returned the following\n' + error)
+    return return_value
+
+
+def _5_2_17_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep logingracetime')
+    if success:
+        grace = success.split()[1]
+        if 1 <= int(grace) <= 60:
+            return_value.append('SSH LoginGraceTime is ' + grace)
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('SSH LoginGraceTime more than 60')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('SSH LoginGraceTime not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep logingracetime returned the following\n' + error)
+    return return_value
+
+
+def _5_2_18_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep allowusers')
+    result_success = success if success else ''
+    result_error = error if error else ''
+    success, error = check('sshd -T | grep allowgroups')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    success, error = check('sshd -T | grep denyusers')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    success, error = check('sshd -T | grep denygroups')
+    result_success += success if success else ''
+    result_error += error if error else ''
+    if len(result_success):
+        return_value.append('SSH access is limited')
+        return_value.append('PASS')
+        return_value.append(result_success + '\n' + result_error)
+    else:
+        return_value.append('SSH access is not limited')
+        return_value.append('FAIL')
+        return_value.append(result_error)
+    return return_value
+
+
+def _5_2_19_deb():
+    return_value = list()
+    success, error = check('sshd -T | grep banner')
+    if 'Banner /etc/issue.net' in success:
+        return_value.append('SSH warning banner is configured')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('SSH warning banner is not configured')
+        return_value.append('FAIL')
+        return_value.append(
+            'sshd -T | grep banner returned the following\n' + success + error)
+    return return_value
+
+
+def _5_3_1_deb():
+    return_value = list()
+    success, error = check('grep pam_pwquality.so /etc/pam.d/common-password')
+    if 'retry=' in success:
+        result_success = 'Check number of retry attempts\n' + success
+        success, error = check('grep ^minlen /etc/security/pwquality.conf')
+        if success:
+            if success.split(' = ')[1].split('\n')[0].isdigit() and int(success.split(' = ')[1].split('\n')[0]) >= 14:
+                result_success += success
+                success, error = check(
+                    'grep ^dcredit /etc/security/pwquality.conf')
+                if '0' not in success:
+                    result_success += '\nCheck number of digits\n' + success
+                    success, error = check(
+                        'grep ^lcredit /etc/security/pwquality.conf')
+                    if '0' not in success:
+                        result_success += '\nCheck number of lower case characters\n' + success
+                        success, error = check(
+                            'grep ^ocredit /etc/security/pwquality.conf')
+                        if '0' not in success:
+                            result_success += '\nCheck number of special characters\n' + success
+                            success, error = check(
+                                'grep ^ucredit /etc/security/pwquality.conf')
+                            if '0' not in success:
+                                return_value.append(
+                                    'password creation requirements configured')
+                                return_value.append('PASS')
+                                return_value.append(
+                                    result_success + '\n' + success)
+                            else:
+                                return_value.append(
+                                    'password does not require upper char')
+                                return_value.append('FAIL')
+                                return_value.append(
+                                    result_success + '\n' + success + '\n' + error)
+                        else:
+                            return_value.append(
+                                'password does not require special char')
+                            return_value.append('FAIL')
+                            return_value.append(
+                                result_success + '\n' + success + '\n' + error)
+                    else:
+                        return_value.append(
+                            'password does not require lowercase')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            result_success + '\n' + success + '\n' + error)
+                else:
+                    return_value.append('password does not require one digit')
+                    return_value.append('FAIL')
+                    return_value.append(
+                        result_success + '\n' + success + '\n' + error)
+            else:
+                return_value.append('password minlen not 14 or more')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\n' + success + '\n' + error)
+        else:
+            return_value.append('password minlen not set')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('password retry not set')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _5_3_2_deb():
+    return_value = list()
+    success, error = check('grep "pam_tally2" /etc/pam.d/common-auth')
+    if success:
+        result_success = 'determine the current settings for user lockout\n' + success
+        success, error = check(
+            'grep -E "pam_tally2\.so" /etc/pam.d/common-account')
+        if success:
+            return_value.append('failed password lockout configured')
+            return_value.append('PASS')
+            return_value.append(result_success + '\n' + success)
+        else:
+            return_value.append('pam_tally2.so module not included')
+            return_value.append('FAIL')
+            return_value.append(result_success + '\n' + error)
+    else:
+        return_value.append('current user lockout settings not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _5_3_3_deb():
+    return_value = list()
+    success, error = check(
+        "egrep '^password\s+required\s+pam_pwhistory.so' /etc/pam.d/common-password")
+    if success:
+        if success.split('remember=')[1].split('\n')[0].isdigit() and int(success.split('remember=')[1].split('\n')[0]) >= 5:
+            return_value.append('password reuse is limited')
+            return_value.append('PASS')
+            return_value.append(success)
+        else:
+            return_value.append('password remember not gt 5')
+            return_value.append('PASS')
+            return_value.append(success)
+    else:
+        return_value.append('password reuse not limited')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _5_3_4_deb():
+    return_value = list()
+    success, error = check(
+        "egrep '^password\s+(\S+\s+)+pam_unix\.so\s+(\S+\s+)*sha512' /etc/pam.d/common-password")
+    if success:
+        return_value.append('password hashing algorithm is SHA-512')
+        return_value.append('PASS')
+        return_value.append(success)
+    else:
+        return_value.append('password hashing algorithm not SHA-512')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _5_4_1_1_deb():
+    return_value = list()
+    success, error = check('grep PASS_MAX_DAYS /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) <= 365 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'egrep ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,5')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) <= 365 and int(d) != -1 for d in days):
+                    return_value.append(
+                        'password expiration less than 365 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+                else:
+                    return_value.append('user password expiration gt 365 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+            else:
+                return_value.append('users password expiration not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_MAX_DAYS conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_MAX_DAYS\n' + success)
+        else:
+            return_value.append('password expiration not 365 days or less')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password expiration not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_MAX_DAYS /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_2_deb():
+    return_value = list()
+    success, error = check('grep PASS_MIN_DAYS /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) >= 7 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'egrep ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,4')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) >= 7 and int(d) != -1 for d in days):
+                    return_value.append('password changes gt 7 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+                else:
+                    return_value.append('user password changes lt 7 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+            else:
+                return_value.append('users password changes days not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_MIN_DAYS conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_MIN_DAYS\n' + success)
+        else:
+            return_value.append('password changes not 7 days or more')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password changes days not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_MIN_DAYS /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_3_deb():
+    return_value = list()
+    success, error = check('grep PASS_WARN_AGE /etc/login.defs')
+    days = [d[1].split()[0] for d in [s.split() for s in success.splitlines(
+    ) if not s.startswith('#')] if d[1].split()[0].lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) >= 7 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'egrep ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,6')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) >= 7 and int(d) != -1 for d in days):
+                    return_value.append('password change warning gt 7 days')
+                    return_value.append('PASS')
+                    return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_WARN_AGE\n' + success)
+                else:
+                    return_value.append(
+                        'user password change warning lt 7 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                        result_success + '\nUsers PASS_WARN_AGE\n' + success)
+            else:
+                return_value.append('users password warn not found')
+                return_value.append('FAIL')
+                return_value.append('verify PASS_WARN_AGE conforms to site policy\n' +
+                                    result_success + '\nUsers PASS_WARN_AGE\n' + success)
+        else:
+            return_value.append('password expiration warning lt 7 days')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('password expiration warning not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep PASS_WARN_AGE /etc/login.defs returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_4_deb():
+    return_value = list()
+    success, error = check('useradd -D | grep INACTIVE')
+    days = [d for d in [s.split('=')[1] for s in success.splitlines(
+    ) if not s.startswith('#')] if d.lstrip('-').isdigit()]
+    if days:
+        if int(days[0]) <= 30 and int(days[0]) != -1:
+            result_success = success
+            success, error = check(
+                'egrep ^[^:]+:[^\!*] /etc/shadow | cut -d: -f1,7')
+            days = [s.split(':')[1] for s in success.splitlines()]
+            if days:
+                if all(int(d) <= 30 and int(d) != -1 for d in days):
+                    return_value.append(
+                        'inactive password lock less than 30 days')
+                    return_value.append('PASS')
+                    return_value.append('verify INACTIVE conforms to site policy\n' +
+                                        result_success + '\nUsers INACTIVE\n' + success)
+                else:
+                    return_value.append('user password lock more than 30 days')
+                    return_value.append('FAIL')
+                    return_value.append('verify INACTIVE conforms to site policy\n' +
+                                        result_success + '\nUsers INACTIVE\n' + success)
+            else:
+                return_value.append('users password lock not found')
+                return_value.append('FAIL')
+                return_value.append('verify INACTIVE conforms to site policy\n' +
+                                    result_success + '\nUsers INACTIVE\n' + success)
+        else:
+            return_value.append('inactive password lock more than 30 days')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('inactive password lock not found')
+        return_value.append('FAIL')
+        return_value.append(
+            'useradd -D | grep INACTIVE returned the following\n' + success + '\n' + error)
+    return return_value
+
+
+def _5_4_1_5_deb():
+    return_value = list()
+    success, error = check(
+        "for usr in $(cut -d: -f1 /etc/shadow); do [[ $(chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo \"$usr :$(chage --list $usr | grep '^Last password change' | cut -d: -f2)\"; done")
+    if not success:
+        return_value.append('last password change date in past')
+        return_value.append('PASS')
+        return_value.append(
+            "for usr in $(cut -d: -f1 /etc/shadow); do [[ $(chage --list $usr | grep '^Last password change' | cut -d: -f2) > $(date) ]] && echo \"$usr :$(chage --list $usr | grep '^Last password change' | cut -d: -f2)\"; done\nreturned the following\n" + error)
+    else:
+        return_value.append('last password change date not in past')
+        return_value.append('FAIL')
+        return_value.append(success)
+    return return_value
+
+
+def _5_4_2_deb():
+    return_value = list()
+    success, error = check(
+        'egrep -v "^\+" /etc/passwd | awk -F: \'($1!="root" && $1!="sync" && $1!="shutdown" && $1!="halt" && $3<1000 && $7!="/usr/sbin/nologin" && $7!="/bin/false") {print}\'')
+    if not success:
+        result_error = error
+        success, error = check(
+            "for user in `awk -F: '($1!=\"root\" && $3 < 1000) {print $1 }' /etc/passwd`; do passwd -S $user | awk -F ' ' '($2!=\"L\") {print $1}'; done")
+        if not success:
+            return_value.append('system accounts are non-login')
+            return_value.append('PASS')
+            return_value.append(result_error + '\n' + error)
+        else:
+            return_value.append('system accounts are login')
+            return_value.append('FAIL')
+            return_value.append(result_error + '\n' + success)
+    else:
+        return_value.append('shell field not /usr/sbin/nologin')
+        return_value.append('FAIL')
+        return_value.append(success)
+    return return_value
+
+
+def _5_4_3_deb():
+    return_value = list()
+    success, error = check('grep "^root:" /etc/passwd | cut -f4 -d:')
+    if '0' in success:
+        return_value.append('root account GID is 0')
+        return_value.append('PASS')
+        return_value.append(
+            'grep "^root:" /etc/passwd | cut -f4 -d: returned\n' + success)
+    else:
+        return_value.append('root account GID not 0')
+        return_value.append('FAIL')
+        return_value.append(success + '\n' + error)
+    return return_value
+
+
+def _5_4_4_deb():
+    return_value = list()
+    success, error = check('grep "umask" /etc/bashrc')
+    if success:
+        umask_permissions = ['22', '23', '27',
+                             '32', '33', '37', '72', '73', '77']
+        if any(u in success for u in umask_permissions):
+            result_success = success
+            success, error = check('grep "umask" /etc/profile')
+            if success:
+                if any(u in success for u in umask_permissions):
+                    result_success += success
+                    success, error = check('grep "umask" /etc/profile.d/*.sh')
+                    if success:
+                        if all(any(u in s for u in umask_permissions) for s in success.splitlines()):
+                            return_value.append(
+                                'default user umask is restrictive')
+                            return_value.append('PASS')
+                            return_value.append(
+                                result_success + '\n' + success)
+                        else:
+                            return_value.append(
+                                'profile.d/*.sh umask not less than 027')
+                            return_value.append('FAIL')
+                            return_value.append(success)
+                    else:
+                        return_value.append(
+                            'umask not found in profile.d/*.sh')
+                        return_value.append('FAIL')
+                        return_value.append(result_success + '\n' + error)
+                else:
+                    return_value.append(
+                        'profile umask not restrictive than 027')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('umask not found in profile')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('bashrc umask not 027 or more restrictive')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('umask not found in bashrc')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _5_4_5_deb():
+    return_value = list()
+    success, error = check('grep "^TMOUT" /etc/bashrc')
+    if success:
+        if all(s.strip('=')[1].lstrip('-').isdigit() and int(s.strip('=')[1]) != -1 and int(s.strip('=')[1]) <= 900 for s in success.splitlines()):
+            result_success = success
+            success, error = check('grep "^TMOUT" /etc/profile')
+            if success:
+                if all(s.strip('=')[1].lstrip('-').isdigit() and int(s.strip('=')[1]) != -1 and int(s.strip('=')[1]) <= 900 for s in success.splitlines()):
+                    return_value.append('user shell timeout is lt 900 sec')
+                    return_value.append('PASS')
+                    return_value.append(result_success + '\n' + success)
+                else:
+                    return_value.append('profile shell timeout not lt 900 sec')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('shell timeout not in profile')
+                return_value.append('FAIL')
+                return_value.append(result_success + '\n' + error)
+        else:
+            return_value.append('bashrc shell timeout not lt 900 sec')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('shell timeout not in bashrc')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep "^TMOUT" /etc/bashrc returned the following\n' + error)
+    return return_value
+
+
+def _5_5_deb():
+    return_value = list()
+    success, error = check('cat /etc/securetty')
+    if success:
+        return_value.append('root login is restricted to system')
+        return_value.append('PASS')
+        return_value.append(
+            'check if following are valid terminals that may be logged in directly as root\n' + success)
+    else:
+        return_value.append('root login not restricted to system')
+        return_value.append('FAIL')
+        return_value.append(
+            'cat /etc/securetty returned the following\n' + error)
+    return return_value
+
+
+def _5_6_deb():
+    return_value = list()
+    success, error = check('grep pam_wheel.so /etc/pam.d/su')
+    if success:
+        if any('auth       required   pam_wheel.so use_uid' in s and not s.startswith('#') for s in success.splitlines()):
+            result_success = success
+            success, error = check('grep sudo /etc/group')
+            if success:
+                if all(s.startswith('sudo:x:10:root,') for s in success.splitlines()):
+                    return_value.append('access to su command is restricted')
+                    return_value.append('PASS')
+                    return_value.append(
+                        result_success + '\nverify users in sudo group match site policy\n' + success)
+                else:
+                    return_value.append('access to su command not restricted')
+                    return_value.append('FAIL')
+                    return_value.append(result_success + '\n' + success)
+            else:
+                return_value.append('access to su command not restricted')
+                return_value.append('FAIL')
+                return_value.append(
+                    result_success + '\ngrep sudo /etc/group returned the following\n' + error)
+        else:
+            return_value.append('access to su command not restricted')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('access to su command not restricted')
+        return_value.append('FAIL')
+        return_value.append(
+            'grep pam_wheel.so /etc/pam.d/su returned the following\n' + error)
     return return_value
 
 
