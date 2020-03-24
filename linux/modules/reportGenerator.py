@@ -263,7 +263,7 @@ def makeIndex(pdf, SeBAz_contents):
         # result
         pdf.drawCentredString(A4[0]*17/20, line, SeBAz_contents[row][2])
         line += 20
-        if line > 770:
+        if line > 770 and ((row + 1) != (len(SeBAz_contents)-24)):
             line = 100
             pdf.restoreState()
             pdf.showPage()

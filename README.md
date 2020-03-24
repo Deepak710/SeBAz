@@ -1,7 +1,7 @@
 # SeBAz
 ## Tool to check compliance with CIS Benchmarks
 
-Current version SeBAz v0.2.4
+Current version [SeBAz v0.3.3](https://github.com/Deepak710/SeBAz/releases "SeBAz releases")
 
 Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
@@ -23,6 +23,11 @@ And if you are the **system administrator** in your organization, then this tool
 * **Spreadsheet** with all the results, which can be modified after manually checking the systems
 * Generate report(s) from the modified spreadsheets
 * Logs of all the commands performed by the tool
+
+## Download
+
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.3.3/SeBAz-amd64 "SeBAz-amd64") - For 64-bit systems
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.3.3/SeBAz-i386 "SeBAz-i386") - For 32-bit systems
 
 ## How to use
 

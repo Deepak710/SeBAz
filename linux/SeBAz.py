@@ -76,9 +76,9 @@ bar_format = u'{count:03d}/{total:03d}{percentage:6.1f}%|{bar}| ' + \
     bold(yellow('chek')) + u':{count_2:{len_total}d} ' + \
     u'[{elapsed}<{eta}, {rate:.1f}{unit_pad}{unit}/s]'
 passd = manager.counter(total=length, unit='tests',
-                        color='bright_white', bar_format=bar_format)
-faild = passd.add_subcounter('bright_white')
-check = passd.add_subcounter('bright_white')
+                        color='white', bar_format=bar_format)
+faild = passd.add_subcounter('white')
+check = passd.add_subcounter('white')
 
 # SeBAz.log file
 log_file = path.dirname(path.abspath(__file__)) + '/' + \
