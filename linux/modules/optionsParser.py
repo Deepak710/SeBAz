@@ -97,7 +97,7 @@ def disp_exp(options):
             profileWorkstation = 'Level ' + str(b[3]) + ' Workstation'
         else:
             profileWorkstation = 'N/A'
-        exp = '{:<7}|{:<10}|{:<14}|{:<19}|'.format(
+        exp = '{:<9}|{:<10}|{:<14}|{:<19}|'.format(
             b[0], 'Scored' if b[1] else 'Not Scored', profileServer, profileWorkstation) + b[4]
         if b[1]:
             print(bold(green(exp)))
