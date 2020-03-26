@@ -10,7 +10,7 @@ parser = ArgumentParser(prog='SeBAz',
                         formatter_class=RawTextHelpFormatter)
 
 # SeBAz version
-parser.version = '%(prog)s v0.4.1'
+parser.version = '%(prog)s v0.4.2'
 
 # optional arguments
 

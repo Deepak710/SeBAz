@@ -833,6 +833,40 @@ benchmark_ubu = [
     ['5.4.5', 1, 1, 1, 'Ensure default user shell timeout is 900 seconds or less'],
     ['5.5', 0, 1, 1, 'Ensure root login is restricted to system console'],
     ['5.6', 1, 1, 1, 'Ensure access to the su command is restricted'],
+    ['6.1.1', 0, 2, 2, 'Audit system file permissions'],
+    ['6.1.2', 1, 1, 1, 'Ensure permissions on /etc/passwd are configured'],
+    ['6.1.3', 1, 1, 1, 'Ensure permissions on /etc/gshadow- are configured'],
+    ['6.1.4', 1, 1, 1, 'Ensure permissions on /etc/shadow are configured'],
+    ['6.1.5', 1, 1, 1, 'Ensure permissions on /etc/group are configured'],
+    ['6.1.6', 1, 1, 1, 'Ensure permissions on /etc/passwd- are configured'],
+    ['6.1.7', 1, 1, 1, 'Ensure permissions on /etc/shadow- are configured'],
+    ['6.1.8', 1, 1, 1, 'Ensure permissions on /etc/group- are configured'],
+    ['6.1.9', 1, 1, 1, 'Ensure permissions on /etc/gshadow are configured'],
+    ['6.1.10', 1, 1, 1, 'Ensure no world writable files exist'],
+    ['6.1.11', 1, 1, 1, 'Ensure no unowned files or directories exist'],
+    ['6.1.12', 1, 1, 1, 'Ensure no ungrouped files or directories exist'],
+    ['6.1.13', 0, 1, 1, 'Audit SUID executables'],
+    ['6.1.14', 0, 1, 1, 'Audit SGID executables'],
+    ['6.2.1', 1, 1, 1, 'Ensure password fields are not empty'],
+    ['6.2.2', 1, 1, 1, 'Ensure no legacy "+" entries exist in /etc/passwd'],
+    ['6.2.3', 1, 1, 1, "Ensure all users' home directories exist"],
+    ['6.2.4', 1, 1, 1, 'Ensure no legacy "+" entries exist in /etc/shadow'],
+    ['6.2.5', 1, 1, 1, 'Ensure no legacy "+" entries exist in /etc/group'],
+    ['6.2.6', 1, 1, 1, 'Ensure root is the only UID 0 account'],
+    ['6.2.7', 1, 1, 1, 'Ensure root PATH Integrity'],
+    ['6.2.8', 1, 1, 1, "Ensure users' home directories permissions are 750 or more restrictive"],
+    ['6.2.9', 1, 1, 1, 'Ensure users own their home directories'],
+    ['6.2.10', 1, 1, 1, "Ensure users' dot files are not group or world writable"],
+    ['6.2.11', 1, 1, 1, 'Ensure no users have .forward files'],
+    ['6.2.12', 1, 1, 1, 'Ensure no users have .netrc files'],
+    ['6.2.13', 1, 1, 1, "Ensure users' .netrc Files are not group or world accessible"],
+    ['6.2.14', 1, 1, 1, 'Ensure no users have .rhosts files'],
+    ['6.2.15', 1, 1, 1, 'Ensure all groups in /etc/passwd exist in /etc/group'],
+    ['6.2.16', 1, 1, 1, 'Ensure no duplicate UIDs exist'],
+    ['6.2.17', 1, 1, 1, 'Ensure no duplicate GIDs exist'],
+    ['6.2.18', 1, 1, 1, 'Ensure no duplicate user names exist'],
+    ['6.2.19', 1, 1, 1, 'Ensure no duplicate group names exist'],
+    ['6.2.20', 1, 1, 1, 'Ensure shadow group is empty'],
 ]
 
 
@@ -18348,6 +18382,21 @@ def _3_5_2_3_ubu():
 
 def _3_5_2_4_ubu():
     return_value = list()
+    success, error = check('ufw status numbered')
+    if success:
+        return_value.append('ufw firewall rules for all open ports')
+        return_value.append('CHEK')
+        return_value.append(
+            'verify all rules for new outbound connections match site policy\n' + success)
+    else:
+        return_value.append('outbound conn rules not found')
+        return_value.append('FAIL')
+        return_value.append(error)
+    return return_value
+
+
+def _3_5_2_5_ubu():
+    return_value = list()
     success, error = check('ss -4tuln')
     if success:
         open_ports = [s.split()[0]
@@ -21132,12 +21181,874 @@ def _5_6_ubu():
         else:
             return_value.append('no groups in /etc/pam.d/su')
             return_value.append('PASS')
-            return_value.append(result_success + '\n' + success)
+            return_value.append(success)
     else:
         return_value.append('access to su command not restricted')
         return_value.append('FAIL')
         return_value.append(
             'grep pam_wheel.so /etc/pam.d/su returned the following\n' + error)
+    return return_value
+
+
+def _6_1_1_ubu():
+    return_value = list()
+    global log_file
+    write_log = log_file.split(
+        '_SeBAz_logs/')[0] + '.system_file_permissions.SeBAz.log'
+    success, error = check('dpkg --verify > ' + write_log)
+    return_value.append('Audit system file permissions')
+    return_value.append('CHEK')
+    return_value.append('Verify the contents of ' +
+                        write_log.split('/')[-1] + '\n' + success + '\n' + error)
+    return return_value
+
+
+def _6_1_2_ubu():
+    return_value = list()
+    success, error = check('stat /etc/passwd | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/passwd permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/passwd permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/passwd invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/passwd not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/passwd | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_3_ubu():
+    return_value = list()
+    success, error = check('stat /etc/gshadow- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/gshadow- permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/gshadow- permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/gshadow- invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/gshadow- invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/gshadow- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/gshadow- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_4_ubu():
+    return_value = list()
+    success, error = check('stat /etc/shadow | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = ['(0640/-rw-r-----)', '(0600/-rw-------)',
+                                  '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/shadow permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/shadow permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/shadow invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/shadow invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/shadow not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/shadow | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_5_ubu():
+    return_value = list()
+    success, error = check('stat /etc/group | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            if '(0644/-rw-r--r--)' in success:
+                return_value.append('/etc/group permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/group permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/group invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/group not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/group | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_6_ubu():
+    return_value = list()
+    success, error = check('stat /etc/passwd- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            allowed_access = ['(0600/-rw-------)', '(0400/-r--------)']
+            if any(a in success for a in allowed_access):
+                return_value.append('/etc/passwd- permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/passwd- permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/passwd- invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/passwd- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/passwd- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_7_ubu():
+    return_value = list()
+    success, error = check('stat /etc/shadow- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith(('0/    root)', 'shadow)')):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/shadow- permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/shadow- permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/shadow- invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/shadow- invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/shadow- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/shadow- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_8_ubu():
+    return_value = list()
+    success, error = check('stat /etc/group- | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (    0/    root)' in success:
+            allowed_access = ['(0644/-rw-r--r--)', '(0640/-rw-r-----)', '(0600/-rw-------)',
+                              '(0444/-r--r--r--)', '(0440/-r--r-----)', '(0400/-r--------)']
+            if any(a in success for a in allowed_access):
+                return_value.append('/etc/group- permissions configured')
+                return_value.append('PASS')
+                return_value.append(success)
+            else:
+                return_value.append(
+                    '/etc/group- permits group and others')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/group- invalid uid and gid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/group- not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/group- | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_9_ubu():
+    return_value = list()
+    success, error = check('stat /etc/gshadow | grep Access')
+    if success:
+        if 'Uid: (    0/    root)   Gid: (' in success:
+            if success.splitlines()[0].endswith('shadow)'):
+                allowed_access = [
+                    '(0640/-rw-r-----)', '(0600/-rw-------)', '(0440/-r--r-----)', '(0400/-r--------)']
+                if any(a in success for a in allowed_access):
+                    return_value.append('/etc/gshadow permissions configured')
+                    return_value.append('PASS')
+                    return_value.append(success)
+                else:
+                    return_value.append(
+                        '/etc/gshadow permits group and others')
+                    return_value.append('FAIL')
+                    return_value.append(success)
+            else:
+                return_value.append('/etc/gshadow invalid gid')
+                return_value.append('FAIL')
+                return_value.append(success)
+        else:
+            return_value.append('/etc/gshadow invalid uid')
+            return_value.append('FAIL')
+            return_value.append(success)
+    else:
+        return_value.append('/etc/gshadow not found')
+        return_value.append('CHEK')
+        return_value.append(
+            'stat /etc/gshadow | grep Access did not return anything\n' + error)
+    return return_value
+
+
+def _6_1_10_ubu():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -0002')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('world writable files does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002 confirms that all world writable directories have the sticky variable set\n" + result_error)
+            else:
+                return_value.append('world writable files exist in partitions')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following world writable files exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('world writable files does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -0002 confirms that all world writable directories have the sticky variable set\n" + result_error + '\n' + error)
+    else:
+        return_value.append('world writable files exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following world writable files exist\n' + success)
+    return return_value
+
+
+def _6_1_11_ubu():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check('find ' + p + ' -xdev -nouser')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('no unowned files or directories exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser confirms that no unowned files or directories exist\n" + result_error)
+            else:
+                return_value.append('unowned files or directories exist')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following unowned files or directories exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('no unowned files or directories exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -nouser confirms that no unowned files or directories exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('unowned files or directories exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following unowned files or directories exist\n' + success)
+    return return_value
+
+
+def _6_1_12_ubu():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check('find ' + p + ' -xdev -nogroup')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('no ungrouped files or directories exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup confirms that no ungrouped files or directories exist\n" + result_error)
+            else:
+                return_value.append('ungrouped files or directories exist')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following ungrouped files or directories exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('no ungrouped files or directories exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -nogroup confirms that no ungrouped files or directories exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('ungrouped files or directories exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following ungrouped files or directories exist\n' + success)
+    return return_value
+
+
+def _6_1_13_ubu():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -4000')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('SUID executables does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000 confirms that SUID executables does not exist\n" + result_error)
+            else:
+                return_value.append('SUID executables found')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following SUID executables exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('SUID executables does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -4000 confirms that SUID executables does not exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('SUID executables found')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following SUID executables exist\n' + success)
+    return return_value
+
+
+def _6_1_14_ubu():
+    return_value = list()
+    success, error = check(
+        "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000")
+    if not success:
+        result_error = error
+        success, error = check('mount | grep -e "/dev/sd"')
+        partitions = [s.split()[0] for s in success.splitlines()]
+        if len(partitions):
+            result_success = ''
+            for p in partitions:
+                success, error = check(
+                    'find ' + p + ' -xdev -type f -perm -2000')
+                result_success += success if success else ''
+                result_error += error
+            if not result_success:
+                return_value.append('SGID executables does not exist')
+                return_value.append('PASS')
+                return_value.append(
+                    "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000 confirms that SGID executables does not exist\n" + result_error)
+            else:
+                return_value.append('SGID executables found')
+                return_value.append('FAIL')
+                return_value.append(
+                    'The following SGID executables exist\n' + result_success + '\n' + result_error)
+        else:
+            return_value.append('SGID executables does not exist')
+            return_value.append('PASS')
+            return_value.append(
+                "running df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev -type f -perm -2000 confirms that SGID executables does not exist\n" + result_error + '\n' + error)
+    else:
+        return_value.append('SGID executables found')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following SGID executables exist\n' + success)
+    return return_value
+
+
+def _6_2_1_ubu():
+    return_value = list()
+    success, error = check(
+        "awk -F: '($2 == \"\" ) { print $1 \" does not have a password \"}' /etc/shadow")
+    if not success:
+        return_value.append('password fields are not empty')
+        return_value.append('PASS')
+        return_value.append(
+            "awk -F: '($2 == \"\" ) { print $1 \" does not have a password \"}' /etc/shadow returned the following\n" + error)
+    else:
+        return_value.append('password fields are empty')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following accounts have empty password fields\n' + success)
+    return return_value
+
+
+def _6_2_2_ubu():
+    return_value = list()
+    success, error = check("grep '^\+:' /etc/passwd")
+    if not success:
+        return_value.append('no legacy "+" entries exist in /etc/passwd')
+        return_value.append('PASS')
+        return_value.append(
+            "grep '^\+:' /etc/passwd returned the following\n" + error)
+    else:
+        return_value.append('legacy "+" entries exist in /etc/passwd')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following accounts have legacy "+" entries in /etc/passwd\n' + success)
+    return return_value
+
+
+def _6_2_3_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_3.sh')
+    check('sudo cat ' + script + ' > ./home_directories.sh')
+    check('chmod +x ./home_directories.sh')
+    success, error = check('./home_directories.sh')
+    if not success:
+        return_value.append('all users\' home directories exist')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_3.sh returned the following\n' + error)
+    else:
+        return_value.append('users without home directory')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users are without home directory\n' + success)
+    check('rm ./home_directories.sh')
+    return return_value
+
+
+def _6_2_4_ubu():
+    return_value = list()
+    success, error = check("grep '^\+:' /etc/shadow")
+    if not success:
+        return_value.append('no legacy "+" entries exist in /etc/shadow')
+        return_value.append('PASS')
+        return_value.append(
+            "grep '^\+:' /etc/shadow returned the following\n" + error)
+    else:
+        return_value.append('legacy "+" entries exist in /etc/shadow')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following accounts have legacy "+" entries in /etc/shadow\n' + success)
+    return return_value
+
+
+def _6_2_5_ubu():
+    return_value = list()
+    success, error = check("grep '^\+:' /etc/group")
+    if not success:
+        return_value.append('no legacy "+" entries exist in /etc/group')
+        return_value.append('PASS')
+        return_value.append(
+            "grep '^\+:' /etc/group returned the following\n" + error)
+    else:
+        return_value.append('legacy "+" entries exist in /etc/group')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following accounts have legacy "+" entries in /etc/group\n' + success)
+    return return_value
+
+
+def _6_2_6_ubu():
+    return_value = list()
+    success, error = check("awk -F: '($3 == 0) { print $1 }' /etc/passwd")
+    if success:
+        if 'root\n' == success:
+            return_value.append('root is the only UID 0 account')
+            return_value.append('PASS')
+            return_value.append(
+                "awk -F: '($3 == 0) { print $1 }' /etc/passwd returned the following\n" + success)
+        else:
+            return_value.append('root is not the only UID 0 account')
+            return_value.append('FAIL')
+            return_value.append(
+                "awk -F: '($3 == 0) { print $1 }' /etc/passwd returned the following UID 0 accounts\n" + success)
+    else:
+        return_value.append('no UID 0 account found')
+        return_value.append('CHEK')
+        return_value.append(error)
+    return return_value
+
+
+def _6_2_7_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_7.sh')
+    check('sudo cat ' + script + ' > ./root_path_integrity.sh')
+    check('chmod +x ./root_path_integrity.sh')
+    success, error = check('./root_path_integrity.sh')
+    if not success:
+        return_value.append('root PATH Integrity maintained')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_7.sh returned the following\n' + error)
+    else:
+        return_value.append('writable dir in root\'s executable path')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following writable directories were found in root\'s executable path\n' + success)
+    check('rm ./root_path_integrity.sh')
+    return return_value
+
+
+def _6_2_8_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_8.sh')
+    check('sudo cat ' + script + ' > ./home_directory_permissions.sh')
+    check('chmod +x ./home_directory_permissions.sh')
+    success, error = check('./home_directory_permissions.sh')
+    if not success:
+        return_value.append('home directories permissions are gt 750')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_8.sh returned the following\n' + error)
+    else:
+        return_value.append('Group or world-writable home directories')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users have Group or world-writable home directories\n' + success)
+    check('rm ./home_directory_permissions.sh')
+    return return_value
+
+
+def _6_2_9_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_9.sh')
+    check('sudo cat ' + script + ' > ./own_home_directory.sh')
+    check('chmod +x ./own_home_directory.sh')
+    success, error = check('./own_home_directory.sh')
+    if not success:
+        return_value.append('users own their home directories')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_9.sh returned the following\n' + error)
+    else:
+        return_value.append('user not owner of home directory')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users are not the not owner of their home directories\n' + success)
+    check('rm ./own_home_directory.sh')
+    return return_value
+
+
+def _6_2_10_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_10.sh')
+    check('sudo cat ' + script + ' > ./user_dot_file.sh')
+    check('chmod +x ./user_dot_file.sh')
+    success, error = check('./user_dot_file.sh')
+    if not success:
+        return_value.append('users\' . files not group or world-writable')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_10.sh returned the following\n' + error)
+    else:
+        return_value.append('users\' . files group or world-writable')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following  users\' dot files are group or world writable\n' + success)
+    check('rm ./user_dot_file.sh')
+    return return_value
+
+
+def _6_2_11_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_11.sh')
+    check('sudo cat ' + script + ' > ./user_forward_file.sh')
+    check('chmod +x ./user_forward_file.sh')
+    success, error = check('./user_forward_file.sh')
+    if not success:
+        return_value.append('no users have .forward files')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_11.sh returned the following\n' + error)
+    else:
+        return_value.append('users have .forward files')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users have .forward files\n' + success)
+    check('rm ./user_forward_file.sh')
+    return return_value
+
+
+def _6_2_12_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_12.sh')
+    check('sudo cat ' + script + ' > ./user_netrc_file.sh')
+    check('chmod +x ./user_netrc_file.sh')
+    success, error = check('./user_netrc_file.sh')
+    if not success:
+        return_value.append('no users have .netrc files')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_12.sh returned the following\n' + error)
+    else:
+        return_value.append('users have .netrc files')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users have .netrc files\n' + success)
+    check('rm ./user_netrc_file.sh')
+    return return_value
+
+
+def _6_2_13_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_13.sh')
+    check('sudo cat ' + script + ' > ./user_netrc_writable.sh')
+    check('chmod +x ./user_netrc_writable.sh')
+    success, error = check('./user_netrc_writable.sh')
+    if not success:
+        return_value.append('users\' .netrc not group or world accessible')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_13.sh returned the following\n' + error)
+    else:
+        return_value.append('users\' .netrc group or world accessible')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users\' .netrc Files are not group or world accessible\n' + success)
+    check('rm ./user_netrc_writable.sh')
+    return return_value
+
+
+def _6_2_14_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_14.sh')
+    check('sudo cat ' + script + ' > ./user_rhosts_file.sh')
+    check('chmod +x ./user_rhosts_file.sh')
+    success, error = check('./user_rhosts_file.sh')
+    if not success:
+        return_value.append('no users have .rhosts files')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_14.sh returned the following\n' + error)
+    else:
+        return_value.append('users have .rhosts files')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following users have .rhosts files\n' + success)
+    check('rm ./user_rhosts_file.sh')
+    return return_value
+
+
+def _6_2_15_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_15.sh')
+    check('sudo cat ' + script + ' > ./group_passwd.sh')
+    check('chmod +x ./group_passwd.sh')
+    success, error = check('./group_passwd.sh')
+    if not success:
+        return_value.append('all groups in passwd exist in group')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_15.sh returned the following\n' + error)
+    else:
+        return_value.append('groups in passwd don\'t exist in group')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following groups in /etc/passwd don\'t exist in /etc/group\n' + success)
+    check('rm ./group_passwd.sh')
+    return return_value
+
+
+def _6_2_16_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_16.sh')
+    check('sudo cat ' + script + ' > ./duplicate_uid.sh')
+    check('chmod +x ./duplicate_uid.sh')
+    success, error = check('./duplicate_uid.sh')
+    if not success:
+        return_value.append('no duplicate UIDs exist')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_16.sh returned the following\n' + error)
+    else:
+        return_value.append('duplicate UIDs exist')
+        return_value.append('FAIL')
+        return_value.append('The following duplicate UIDs exist\n' + success)
+    check('rm ./duplicate_uid.sh')
+    return return_value
+
+
+def _6_2_17_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_17.sh')
+    check('sudo cat ' + script + ' > ./duplicate_gid.sh')
+    check('chmod +x ./duplicate_gid.sh')
+    success, error = check('./duplicate_gid.sh')
+    if not success:
+        return_value.append('no duplicate GIDs exist')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_17.sh returned the following\n' + error)
+    else:
+        return_value.append('duplicate GIDs exist')
+        return_value.append('FAIL')
+        return_value.append('The following duplicate GIDs exist\n' + success)
+    check('rm ./duplicate_gid.sh')
+    return return_value
+
+
+def _6_2_18_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_18.sh')
+    check('sudo cat ' + script + ' > ./duplicate_user_name.sh')
+    check('chmod +x ./duplicate_user_name.sh')
+    success, error = check('./duplicate_user_name.sh')
+    if not success:
+        return_value.append('no duplicate user names exist')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_18.sh returned the following\n' + error)
+    else:
+        return_value.append('duplicate user names exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following duplicate user names exist\n' + success)
+    check('rm ./duplicate_user_name.sh')
+    return return_value
+
+
+def _6_2_19_ubu():
+    return_value = list()
+    from sys import _MEIPASS
+    from os.path import join
+    script = join(_MEIPASS, 'scripts/ubu/6_2_19.sh')
+    check('sudo cat ' + script + ' > ./duplicate_group_name.sh')
+    check('chmod +x ./duplicate_group_name.sh')
+    success, error = check('./duplicate_group_name.sh')
+    if not success:
+        return_value.append('no duplicate group names exist')
+        return_value.append('PASS')
+        return_value.append(
+            'executing https://github.com/Deepak710/SeBAz/blob/master/linux/scripts/ubu/6_2_19.sh returned the following\n' + error)
+    else:
+        return_value.append('duplicate group names exist')
+        return_value.append('FAIL')
+        return_value.append(
+            'The following duplicate group names exist\n' + success)
+    check('rm ./duplicate_group_name.sh')
+    return return_value
+
+
+def _6_2_20_ubu():
+    return_value = list()
+    success, error = check('grep ^shadow:[^:]*:[^:]*:[^:]+ /etc/group')
+    if not success:
+        return_value.append('users not assigned to shadow group')
+        return_value.append('PASS')
+        return_value.append(
+            'grep ^shadow:[^:]*:[^:]*:[^:]+ /etc/group returned the following\n' + error)
+    else:
+        result_success = ''
+        result_error = ''
+        for shadow_gid in success.splitlines():
+            result = check("awk -F: '($4 == \"" + shadow_gid +
+                           "\") { print }' /etc/passwd")
+            result_success += result[0]
+            result_error += result[1]
+        if len(result_success):
+            return_value.append('users not assigned to shadow group')
+            return_value.append('PASS')
+            return_value.append(
+                'Following GIDs don\'t have entries in passwd\n' + success + '\n' + result_error)
+        else:
+            return_value.append(
+                'users assigned to shadow group in /etc/passwd')
+            return_value.append('FAIL')
+            return_value.append('The following users are assigned to the shadow group in /etc/passwd\n' +
+                                success + '\n' + result_success + '\n' + result_error + '\n' + error)
     return return_value
 
 
