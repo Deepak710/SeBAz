@@ -1,7 +1,7 @@
 # <img src="https://github.com/Deepak710/SeBAz/blob/master/Logo.png" alt="SeBAz"/>
 ## Tool to check compliance with CIS Benchmarks, Specifically Distribution Independent Linux Benchmark v2.0.0, Debian Linux 9 Benchmark v1.0.1 and Ubuntu Linux 18.04 LTS Benchmark v2.0.1
 
-Current version [SeBAz v0.4.2](https://github.com/Deepak710/SeBAz/releases "SeBAz releases")
+Current version [SeBAz v0.5.0](https://github.com/Deepak710/SeBAz/releases "SeBAz releases")
 
 Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
@@ -27,8 +27,8 @@ Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>Download
 
-* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.4.2/SeBAz-amd64 "SeBAz-amd64") - For 64-bit systems
-* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.4.2/SeBAz-i386 "SeBAz-i386") - For 32-bit systems
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.0/SeBAz-amd64 "SeBAz-amd64") - For 64-bit systems
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.0/SeBAz-i386 "SeBAz-i386") - For 32-bit systems
 
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>How to use
 

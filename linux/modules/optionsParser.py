@@ -7,16 +7,8 @@ def get_recommendations(options):
 
     if options.dist == 'ind':
         from modules.benchmarks import benchmark_ind as benchmark
-    elif options.dist == 'cen':
-        from modules.benchmarks import benchmark_cen as benchmark
     elif options.dist == 'deb':
         from modules.benchmarks import benchmark_deb as benchmark
-    elif options.dist == 'fed':
-        from modules.benchmarks import benchmark_fed as benchmark
-    elif options.dist == 'red':
-        from modules.benchmarks import benchmark_red as benchmark
-    elif options.dist == 'sus':
-        from modules.benchmarks import benchmark_sus as benchmark
     elif options.dist == 'ubu':
         from modules.benchmarks import benchmark_ubu as benchmark
 

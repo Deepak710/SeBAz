@@ -7,9 +7,10 @@ from time import time, gmtime, localtime
 from os import system, path, geteuid
 from modules.benchmarks import test
 from enlighten import get_manager
+from fabulous.image import Image
+from sys import exit, _MEIPASS
 from itertools import repeat
 from csv import writer
-from sys import exit
 
 
 # getting optional arguments from user
@@ -43,6 +44,7 @@ if not geteuid() == 0:
 # starting terminal manager by enlighten
 manager = get_manager()
 system('sudo clear')
+print(Image(path.join(_MEIPASS, 'Logo.png')))
 print(bold('Welcome to SeBAz'))
 print('\n\nGive me a moment to calculate the prerequisites...\n\n')
 
@@ -109,8 +111,8 @@ print('Done.')
 
 # calculating runtime
 duration = '\nPerformed ' + str(length) + ' tests in '
-result = str(passed) + ' out of ' + str(length) + \
-    ' have passed\nThis system\'s Score is ' + str(score)
+result = str(passed) + ' tests passed, where ' + str(score) + \
+    ' were Scored.\nThis system\'s Score is {:.0f}%'.format((score/length)*100)
 end = time() - start
 if (end // 60 % 60) < 1:
     duration += '{:.3f} seconds'.format(end)

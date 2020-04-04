@@ -8,30 +8,21 @@ from sys import exit
 colorPass = [76, 175, 80]
 colorFail = [244, 67, 54]
 colorWarn = [255, 152, 0]
-colorPrimary = [0, 188, 212]
-colorSecondary = [103, 58, 183]
+colorPrimary = [53, 92, 125]
+colorSecondary = [108, 91, 123]
 
 
 def setInfo(pdf, SeBAz_contents):
     pdf.setAuthor(SeBAz_contents[-13][1])
     pdf.setCreator('SeBAz')
     pdf.setProducer('SeBAz')
-    subject = 'Result of'
+    subject = 'Result of CIS '
     if SeBAz_contents[-9][1] == 'ind':
-        subject += ' Independent '
-    if SeBAz_contents[-9][1] == 'cen':
-        subject += ' CentOS 8 '
+        subject += 'Distribution Independent Linux Benchmark v2.0.0'
     if SeBAz_contents[-9][1] == 'deb':
-        subject += ' Debian 9 '
-    if SeBAz_contents[-9][1] == 'fed':
-        subject += ' Fedora 28 Family '
-    if SeBAz_contents[-9][1] == 'red':
-        subject += ' RedHat Enterprise 8 '
-    if SeBAz_contents[-9][1] == 'sus':
-        subject += ' SUSE Enterprise 12 '
+        subject += 'Debian Linux 9 Benchmark v1.0.1'
     if SeBAz_contents[-9][1] == 'ubu':
-        subject += ' Ubuntu 18.04 LTS '
-    subject += 'Linux CIS Benchmarking'
+        subject += 'Ubuntu Linux 18.04 LTS v2.0.1'
     pdf.setSubject(subject)
     return subject
 
@@ -66,9 +57,26 @@ def makeTitle(pdf, SeBAz_contents, subject):
     # passed
     pdf.drawCentredString(A4[0]/2, A4[1]*27/50, SeBAz_contents[-2][0])
     # score
+    pdf.saveState()
+    score = SeBAz_contents[-1][0].split('%')[0].split(' ')[-1]
+    if int(score) > 75:
+        pdf.setFillColorRGB(
+            colorPass[0]/256, colorPass[1]/256, colorPass[2]/256)
+    elif int(score) > 50:
+        pdf.setFillColorRGB(
+            colorWarn[0]/256, colorWarn[1]/256, colorWarn[2]/256)
+    else:
+        pdf.setFillColorRGB(
+            colorFail[0]/256, colorFail[1]/256, colorFail[2]/256)
     pdf.drawCentredString(A4[0]/2, A4[1]*29/50, SeBAz_contents[-1][0])
+    pdf.restoreState()
     # auditor name
-    pdf.drawRightString(A4[0]*10/12, A4[1]*40/50, SeBAz_contents[-13][1])
+    if SeBAz_contents[-13][1]:
+        pdf.drawRightString(A4[0]*10/12, A4[1]*38/50, "Audit Performed by")
+        pdf.saveState()
+        pdf.setFont('Helvetica-BoldOblique', 25)
+        pdf.drawRightString(A4[0]*10/12, A4[1]*40/50, SeBAz_contents[-13][1])
+        pdf.restoreState()
     pdf.restoreState()
     pdf.showPage()
 
@@ -219,7 +227,7 @@ def makeIntro(pdf, SeBAz_contents):
     pdf.setFont('Helvetica-Bold', 15)
     pdf.drawString(startColumn, startRow + line, 'Platform')
     pdf.setFont('Helvetica-Bold', 12)
-    pdf.drawString(startColumn + 180, startRow + line, SeBAz_contents[-14][1])
+    pdf.drawString(startColumn + 180, startRow + line, SeBAz_contents[-9][1])
     # Verbosity
     line += 30
     pdf.setFont('Helvetica-Bold', 15)
@@ -293,8 +301,6 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         else:
             pdf.setFont('Helvetica-BoldOblique', 10)
             pdf.drawCentredString(A4[0]/2, A4[1]/8 + 20, recommendations[i][4])
-        pdf.restoreState()
-        pdf.saveState()
         startColumn = 3*(A4[0]/10)/2
         startRow = 250
         # Scored
@@ -315,6 +321,8 @@ def makeBody(pdf, SeBAz_contents, recommendations):
         else:
             profileWorkstation = 'N/A'
         pdf.drawString(startColumn, A4[1]/8 + 90, profileWorkstation)
+        pdf.restoreState()
+        pdf.saveState()
         # result
         pdf.setFont('Helvetica-Bold', 13)
         pdf.drawString(startColumn, startRow, 'Result')

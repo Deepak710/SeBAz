@@ -10,7 +10,7 @@ parser = ArgumentParser(prog='SeBAz',
                         formatter_class=RawTextHelpFormatter)
 
 # SeBAz version
-parser.version = '%(prog)s v0.4.2'
+parser.version = '%(prog)s v0.5.0'
 
 # optional arguments
 
@@ -89,17 +89,12 @@ parser.add_argument('-d', '--descript', type=str, nargs='+',
                     '\n -d \t\'This is an example of how to store\n\tA description on multiple lines\'')
 
 # Linux Distribution of the system
-# DON'T KNOW IF EVERYTHING CAN BE IMPLEMENTED
-parser.add_argument('--dist', type=str, choices=['cen', 'deb', 'fed', 'red', 'sus', 'ubu'],
+parser.add_argument('--dist', type=str, choices=['deb', 'ubu'],
                     action='store', help='Specify distribution of auditing system if known'
                     '\nDefault benchmarks against independent'
                     '\nLegend:'
-                    '\ncen - CentOS'
-                    '\ndeb - Debian'
-                    '\nfed - Fedora'
-                    '\nred - RedHat'
-                    '\nsus - SUSE'
-                    '\nubu - Ubuntu'
+                    '\ndeb - Debian 9 v1.0.1'
+                    '\nubu - Ubuntu 18.04 LTS v2.0.2'
                     '\nExample:'
                     '\n --dist deb')
 
