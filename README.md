@@ -1,7 +1,7 @@
 # <img src="https://github.com/Deepak710/SeBAz/blob/master/Logo.png" alt="SeBAz"/>
 ## Tool to check compliance with CIS Benchmarks, Specifically Distribution Independent Linux Benchmark v2.0.0, Debian Linux 9 Benchmark v1.0.1 and Ubuntu Linux 18.04 LTS Benchmark v2.0.1
 
-Current version [SeBAz v0.5.0](https://github.com/Deepak710/SeBAz/releases "SeBAz releases")
+Current version [SeBAz v0.5.1](https://github.com/Deepak710/SeBAz/releases "SeBAz releases")
 
 Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
