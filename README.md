@@ -5,6 +5,8 @@ Current version [SeBAz v0.5.0](https://github.com/Deepak710/SeBAz/releases "SeBA
 
 Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
+[![How to use SeBAz](https://i.imgur.com/YNq9wRE.jpg)](https://youtu.be/dQw4w9WgXcQ)
+
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>What is SeBAz?
 
 <p align="justify">SeBAz is a tool to check your system's compliance with CIS Benchmarks. It automatically performs the tests and generates a CSV file for the auditor's review. It also generates an audit ready PDF document which contains information such as which tests passed (or) failed, and why so.</p>
@@ -27,8 +29,8 @@ Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>Download
 
-* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.0/SeBAz-amd64 "SeBAz-amd64") - For 64-bit systems
-* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.0/SeBAz-i386 "SeBAz-i386") - For 32-bit systems
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.1/SeBAz-amd64 "SeBAz-amd64") - For 64-bit systems
+* [SeBAz](https://github.com/Deepak710/SeBAz/releases/download/v0.5.1/SeBAz-i386 "SeBAz-i386") - For 32-bit systems
 
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>How to use
 
