@@ -4035,6 +4035,7 @@ def _3_5_1_2_ind():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + '\nFollowing uses ipv6\n' + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'IPv6 output accpet destination not ::/0')
@@ -4075,6 +4076,11 @@ def _3_5_1_2_ind():
                                     success + '\nFollowing uses ipv6\n' + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('IPv6 output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            success + '\nFollowing uses ipv6\n' + result_success)
                 else:
                     return_value.append('IPv6 output loopback no config')
                     return_value.append('FAIL')
@@ -4319,6 +4325,7 @@ def _3_5_2_2_ind():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'fw output accpet destination not 0.0.0.0/0')
@@ -4358,6 +4365,10 @@ def _3_5_2_2_ind():
                                 return_value.append(success + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('fw output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(success + result_success)
                 else:
                     return_value.append('fw output loopback no config')
                     return_value.append('FAIL')
@@ -5669,8 +5680,7 @@ def _5_1_8_ind():
                 else:
                     return_value.append('/etc/cron.allow not configured')
                     return_value.append('FAIL')
-                    return_value.append(result_error + '\n' + result_success +
-                                        '\nstat /etc/at.allow returned the following\n' + success)
+                    return_value.append(result_error + '\nstat /etc/at.allow returned the following\n' + success)
             else:
                 return_value.append('/etc/cron.allow not found')
                 return_value.append('FAIL')
@@ -9935,6 +9945,7 @@ def _3_5_1_2_deb():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'fw output accpet destination not 0.0.0.0/0')
@@ -9974,6 +9985,10 @@ def _3_5_1_2_deb():
                                 return_value.append(success + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('fw output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(success + result_success)
                 else:
                     return_value.append('fw output loopback no config')
                     return_value.append('FAIL')
@@ -10207,6 +10222,7 @@ def _3_5_2_2_deb():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + '\nFollowing uses ipv6\n' + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'IPv6 output accpet destination not ::/0')
@@ -10247,6 +10263,11 @@ def _3_5_2_2_deb():
                                     success + '\nFollowing uses ipv6\n' + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('IPv6 output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            success + '\nFollowing uses ipv6\n' + result_success)
                 else:
                     return_value.append('IPv6 output loopback no config')
                     return_value.append('FAIL')
@@ -11471,8 +11492,7 @@ def _5_1_8_deb():
                 else:
                     return_value.append('/etc/cron.allow not configured')
                     return_value.append('FAIL')
-                    return_value.append(result_error + '\n' + result_success +
-                                        '\nstat /etc/at.allow returned the following\n' + success)
+                    return_value.append(result_error + '\nstat /etc/at.allow returned the following\n' + success)
             else:
                 return_value.append('/etc/cron.allow not found')
                 return_value.append('FAIL')
@@ -16212,6 +16232,7 @@ def _3_5_4_1_2_ubu():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'fw output accpet destination not 0.0.0.0/0')
@@ -16251,6 +16272,10 @@ def _3_5_4_1_2_ubu():
                                 return_value.append(success + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('fw output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(success + result_success)
                 else:
                     return_value.append('fw output loopback no config')
                     return_value.append('FAIL')
@@ -16484,6 +16509,7 @@ def _3_5_4_2_2_ubu():
                                                 return_value.append('PASS')
                                                 return_value.append(
                                                     success + '\nFollowing uses ipv6\n' + result_success)
+                                                flag += 1
                                             else:
                                                 return_value.append(
                                                     'IPv6 output accpet destination not ::/0')
@@ -16524,6 +16550,11 @@ def _3_5_4_2_2_ubu():
                                     success + '\nFollowing uses ipv6\n' + result_success)
                                 flag += 1
                                 break
+                    if not flag:
+                        return_value.append('IPv6 output loopback no config')
+                        return_value.append('FAIL')
+                        return_value.append(
+                            success + '\nFollowing uses ipv6\n' + result_success)
                 else:
                     return_value.append('IPv6 output loopback no config')
                     return_value.append('FAIL')
@@ -17733,13 +17764,11 @@ def _5_1_8_ubu():
                     else:
                         return_value.append('/etc/at.allow not found')
                         return_value.append('FAIL')
-                        return_value.append(result_error + '\n' + result_success +
-                                            '\nstat /etc/at.allow returned the following\n' + error)
+                        return_value.append(result_error + '\nstat /etc/at.allow returned the following\n' + error)
                 else:
                     return_value.append('/etc/cron.allow not configured')
                     return_value.append('FAIL')
-                    return_value.append(result_error + '\n' + result_success +
-                                        '\nstat /etc/at.allow returned the following\n' + success)
+                    return_value.append(result_error + '\nstat /etc/at.allow returned the following\n' + success)
             else:
                 return_value.append('/etc/cron.allow not found')
                 return_value.append('FAIL')
