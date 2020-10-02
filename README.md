@@ -5,7 +5,7 @@ Current version [SeBAz v0.5.1](https://github.com/Deepak710/SeBAz/releases "SeBA
 
 Made by [Deepak](https://t.me/AzorAhoy "Telegram")
 
-[![How to use SeBAz](https://i.imgur.com/YNq9wRE.jpg)](https://youtu.be/dQw4w9WgXcQ)
+[![How to use SeBAz](https://i.imgur.com/YNq9wRE.jpg)](https://youtu.be/fOA_R_qhHQg)
 
 ## <img align="left" src="https://github.com/Deepak710/SeBAz/blob/master/Icon.png" width="45" height="45" alt=""/>What is SeBAz?
 
